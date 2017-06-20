@@ -1,0 +1,38 @@
+
+GCCOPT = -DNDEBUG -O2 -DMPICH_IGNORE_CXX_SEEK -DGRAPH_GENERATOR_SEQ 
+GCCDEB = -g -fno-inline -DMPICH_IGNORE_CXX_SEEK -DGRAPH_GENERATOR_SEQ #-DDEBUG
+OPTPGI = -fast -Mipa=fast,inline -Msmartalloc --zc_eh -DMPICH_IGNORE_CXX_SEEK -DGRAPH_GENERATOR_SEQ 
+COMPILER = CC 
+GCCFLAGS = $(GCCOPT) -DTIMING 
+PGIFLAGS = $(INCADD) $(OPTPGI) -DCOMBBLAS_BOOST
+CRAYFLAGS = $(INCADD) -DCOMBBLAS_BOOST -DCRAYCOMP -h msglevel_4
+FLAGS = $(GCCFLAGS) -std=c++11 -std=gnu++14 -DTHREADED -fopenmp -DCOMBBLAS_DEBUG -DKSELECTLIMIT=40
+COMBBLAS = ..
+
+mmio.o: ../mmio.c
+	cc $(INCADD) $(FLAGS) -c -o mmio.o ../mmio.c
+
+CommGrid.o:	../CommGrid.cpp ../CommGrid.h
+	$(COMPILER) $(FLAGS) -c -o CommGrid.o ../CommGrid.cpp 
+
+MPIType.o:	../MPIType.cpp ../MPIType.h
+	$(COMPILER) $(FLAGS) -c -o MPIType.o ../MPIType.cpp 
+
+MemoryPool.o:	../MemoryPool.cpp ../SpDefs.h
+	$(COMPILER) $(FLAGS) -c -o MemoryPool.o ../MemoryPool.cpp 
+
+MCL.o:  MCL.cpp CC.h ../SpDCCols.cpp ../dcsc.cpp ../SpHelper.h ../SpParMat.h ../ParFriends.h ../SpParMat.cpp ../SpDefs.h ../SpTuples.cpp
+	$(COMPILER) $(FLAGS) -DMCLMEMORY -c -o MCL.o MCL.cpp
+
+
+
+mcl:	CommGrid.o MPIType.o MCL.o mmio.o
+	$(COMPILER) $(FLAGS) -o mcl MCL.o mmio.o CommGrid.o MPIType.o
+
+
+
+clean:
+
+	rm -f mcl
+	rm -f *.o
+

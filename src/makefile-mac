@@ -1,0 +1,36 @@
+
+OPT = -DNDEBUG -O2 -DMPICH_IGNORE_CXX_SEEK -DGRAPH_GENERATOR_SEQ -Wreturn-type
+DEB = -g -O0 -fno-inline -DMPICH_IGNORE_CXX_SEEK -DGRAPH_GENERATOR_SEQ -Wreturn-type -DDEBUG 
+COMPILER = mpicxx -std=c++11 -std=c++14 -DTHREADED -fopenmp  -fpermissive  
+FLAGS = $(OPT)  -Wall -DTIMING #-DCOMBBLAS_DEBUG 
+COMBBLAS = CombBLAS
+BIN = ../bin
+
+all: hipmcl mclconvert
+
+
+CommGrid.o:	$(COMBBLAS)/CommGrid.cpp $(COMBBLAS)/CommGrid.h
+	$(COMPILER)  $(FLAGS) -c -o CommGrid.o $(COMBBLAS)/CommGrid.cpp 
+mmio.o: $(COMBBLAS)/mmio.c
+	mpicc $(FLAGS) -c -o mmio.o $(COMBBLAS)/mmio.c
+
+MPIType.o:	$(COMBBLAS)/MPIType.cpp $(COMBBLAS)/MPIType.h
+	$(COMPILER) $(FLAGS) -c -o MPIType.o $(COMBBLAS)/MPIType.cpp 
+
+HipMCL.o:  HipMCL.cpp CC.h $(COMBBLAS)/SpParMat.h $(COMBBLAS)/ParFriends.h $(COMBBLAS)/SpParMat.cpp
+	$(COMPILER) $(FLAGS) -DMCLMEMORY -c -o HipMCL.o HipMCL.cpp 
+mclconvert.o: MCLConvert.cpp
+	$(COMPILER) $(FLAGS) -c -o mclconvert.o MCLConvert.cpp 
+
+hipmcl:	HipMCL.o  CommGrid.o MPIType.o mmio.o
+	$(COMPILER) $(FLAGS)  -o $(BIN)/hipmcl HipMCL.o mmio.o CommGrid.o MPIType.o
+mclconvert: mclconvert.o 
+	$(COMPILER) $(FLAGS) -o $(BIN)/mclconvert mclconvert.o  
+
+
+clean:
+	
+	rm -f $(BIN)/hipmcl
+	rm -f $(BIN)/mclconvert 
+	rm -f *.o
+	rm -f $(COMBBLAS)/*.o

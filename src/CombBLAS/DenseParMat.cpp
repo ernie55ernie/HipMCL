@@ -1,0 +1,143 @@
+/****************************************************************/
+/* Parallel Combinatorial BLAS Library (for Graph Computations) */
+/* version 1.4 -------------------------------------------------*/
+/* date: 1/17/2014 ---------------------------------------------*/
+/* authors: Aydin Buluc (abuluc@lbl.gov), Adam Lugowski --------*/
+/****************************************************************/
+/*
+ Copyright (c) 2010-2014, The Regents of the University of California
+ 
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+ 
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+ 
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ */
+
+#include <numeric>
+#include "DenseParMat.h"
+#include "MPIType.h"
+#include "Operations.h"
+
+using namespace std;
+
+template <class IT, class NT>
+template <typename _BinaryOperation>
+FullyDistVec< IT,NT > DenseParMat<IT,NT>::Reduce(Dim dim, _BinaryOperation __binary_op, NT identity) const
+{
+
+	switch(dim)
+	{
+		case Column:	// pack along the columns, result is a vector of size n
+		{
+            FullyDistVec<IT,NT> parvec(commGrid, gcols(), identity);
+			NT * sendbuf = new NT[n];
+			for(int j=0; j < n; ++j)
+			{
+				sendbuf[j] = identity;
+				for(int i=0; i < m; ++i)
+				{
+					sendbuf[j] = __binary_op(array[i][j], sendbuf[j]); 
+				}
+			}
+            /* ABAB: to complete
+			NT * recvbuf = parvec.arr.data();// MIGHT NOT WORK AS THE RESULTING VECTOR NEEDS A TRANSPOSE IN THE END... (ROWS V COLS)
+            
+            int colneighs = commGrid->GetGridRows();	// including oneself
+            int colrank = commGrid->GetRankInProcCol();
+            IT * loclens = new IT[colneighs];
+            
+            MPI_Reduce_scatter...
+			MPI_Reduce(sendbuf, recvbuf, n, MPIType<NT>(), MPIOp<_BinaryOperation, NT>::op(), root,commGrid->GetColWorld());
+			delete sendbuf;
+             */
+            return parvec;
+			break;
+		}
+		case Row:	// pack along the rows, result is a vector of size m
+		{
+            FullyDistVec<IT,NT> parvec(commGrid, grows(), identity);
+
+			NT * sendbuf = new NT[m];
+			for(int i=0; i < m; ++i)
+			{
+				sendbuf[i] = std::accumulate( array[i], array[i]+n, identity, __binary_op);
+			}
+			NT * recvbuf = parvec.arr.data();
+            
+            
+            int rowneighs = commGrid->GetGridCols();
+            int rowrank = commGrid->GetRankInProcRow();
+            IT * recvcounts = new IT[rowneighs];
+            recvcounts[rowrank] = parvec.MyLocLength();  // local vector lengths are the ultimate receive counts
+            MPI_Allgather(MPI_IN_PLACE, 0, MPIType<IT>(), recvcounts, 1, MPIType<IT>(), commGrid->GetRowWorld());
+            
+            // "The MPI_REDUCE_SCATTER routine is functionally equivalent to:
+            // an MPI_REDUCE collective operation with count equal to the sum of recvcounts[i]
+            // followed by MPI_SCATTERV with sendcounts equal to recvcounts."
+            MPI_Reduce_scatter(sendbuf, recvbuf, recvcounts, MPIType<NT>(), MPIOp<_BinaryOperation, NT>::op(), commGrid->GetRowWorld());
+			delete [] sendbuf;
+            delete [] recvcounts;
+            return parvec;
+			break;
+		}
+		default:
+		{
+			cout << "Unknown reduction dimension, returning empty vector" << endl;
+            return FullyDistVec<IT,NT>(commGrid);
+			break;
+		}
+	}
+}
+
+template <class IT, class NT>
+template <typename DER>
+DenseParMat< IT,NT > & DenseParMat<IT,NT>::operator+=(const SpParMat< IT,NT,DER > & rhs)		// add a sparse matrix
+{
+	if(*commGrid == *rhs.commGrid)	
+	{
+		(rhs.spSeq)->UpdateDense(array, plus<double>());
+	}
+	else
+	{
+		cout << "Grids are not comparable elementwise addition" << endl; 
+		MPI_Abort(MPI_COMM_WORLD,GRIDMISMATCH);
+	}
+	return *this;	
+}
+
+
+template <class IT, class NT>
+DenseParMat< IT,NT > &  DenseParMat<IT,NT>::operator=(const DenseParMat< IT,NT > & rhs)		// assignment operator
+{
+	if(this != &rhs)		
+	{
+		if(array != NULL) 
+			SpHelper::deallocate2D(array, m);
+
+		m = rhs.m;
+		n = rhs.n;
+		if(rhs.array != NULL)	
+		{
+			array = SpHelper::allocate2D<NT>(m, n);
+			for(int i=0; i< m; ++i)
+				copy(array[i], array[i]+n, rhs.array[i]);
+		}
+		commGrid.reset(new CommGrid(*(rhs.commGrid)));		
+	}
+	return *this;
+}
+
+
