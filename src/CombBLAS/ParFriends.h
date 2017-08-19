@@ -687,12 +687,15 @@ SpParMat<IU,NUO,UDERO> Mult_AnXBn_DoubleBuff
 			BRecv = new UDERB();
 		}
 		SpParHelper::BCastMatrix(GridC->GetColWorld(), *BRecv, ess, i);	// then, receive its elements
+		
+		
 		SpTuples<IU,NUO> * C_cont = MultiplyReturnTuples<SR, NUO>
 						(*ARecv, *BRecv, // parameters themselves
 						false, true,	// transpose information (B is transposed)
 						i != Aself, 	// 'delete A' condition
 						i != Bself);	// 'delete B' condition
-		if(!C_cont->isZero()) 
+		
+		if(!C_cont->isZero())
 			tomerge.push_back(C_cont);
 		else
 			delete C_cont;
@@ -745,7 +748,8 @@ SpParMat<IU,NUO,UDERO> Mult_AnXBn_DoubleBuff
 						false, true,	// transpose information (B is transposed)
 						i != Aself, 	// 'delete A' condition
 						i != Bself);	// 'delete B' condition
-		if(!C_cont->isZero()) 
+		
+		if(!C_cont->isZero())
 			tomerge.push_back(C_cont);
 		else
 			delete C_cont;
@@ -778,8 +782,7 @@ SpParMat<IU,NUO,UDERO> Mult_AnXBn_DoubleBuff
 		const_cast< UDERB* >(B.spSeq)->Transpose();	// transpose back to original
 	}
 			
-	UDERO * C = new UDERO(MergeAll<SR>(tomerge, C_m, C_n,true), false);	
-	// First get the result in SpTuples, then convert to UDER
+	UDERO * C = new UDERO(MergeAll<SR>(tomerge, C_m, C_n,true), false);
 	return SpParMat<IU,NUO,UDERO> (C, GridC);		// return the result object
 }
 
@@ -803,7 +806,7 @@ SpParMat<IU, NUO, UDERO> Mult_AnXBn_Synch
 	IU C_m = A.spSeq->getnrow();
 	IU C_n = B.spSeq->getncol();
 	
-	const_cast< UDERB* >(B.spSeq)->Transpose();	
+	//const_cast< UDERB* >(B.spSeq)->Transpose(); // do not transpose for colum-by-column multiplication
 	MPI_Barrier(GridC->GetWorld());
 
 	IU ** ARecvSizes = SpHelper::allocate2D<IU>(UDERA::esscount, stages);
@@ -819,7 +822,7 @@ SpParMat<IU, NUO, UDERO> Mult_AnXBn_Synch
 
 	int Aself = (A.commGrid)->GetRankInProcRow();
 	int Bself = (B.commGrid)->GetRankInProcCol();	
-
+	
 	for(int i = 0; i < stages; ++i) 
 	{
 		vector<IU> ess;	
@@ -853,14 +856,24 @@ SpParMat<IU, NUO, UDERO> Mult_AnXBn_Synch
 			}	
 			BRecv = new UDERB();
 		}
+		
 		SpParHelper::BCastMatrix(GridC->GetColWorld(), *BRecv, ess, i);	// then, receive its elements
 
+		/*
+		 // before activating this transpose B first
 		SpTuples<IU,NUO> * C_cont = MultiplyReturnTuples<SR, NUO>
 						(*ARecv, *BRecv, // parameters themselves
 						false, true,	// transpose information (B is transposed)
 						i != Aself, 	// 'delete A' condition
 						i != Bself);	// 'delete B' condition
+		 */
+		
+		SpTuples<IU,NUO> * C_cont = LocalSpGEMM<SR, NUO>
+						(*ARecv, *BRecv, // parameters themselves
+						i != Aself, 	// 'delete A' condition
+						i != Bself);	// 'delete B' condition
 
+		
 		if(!C_cont->isZero()) 
 			tomerge.push_back(C_cont);
 
@@ -884,12 +897,15 @@ SpParMat<IU, NUO, UDERO> Mult_AnXBn_Synch
 	SpHelper::deallocate2D(ARecvSizes, UDERA::esscount);
 	SpHelper::deallocate2D(BRecvSizes, UDERB::esscount);
 		
-	UDERO * C = new UDERO(MergeAll<SR>(tomerge, C_m, C_n,true), false);	
+	//UDERO * C = new UDERO(MergeAll<SR>(tomerge, C_m, C_n,true), false);
 	// First get the result in SpTuples, then convert to UDER
 	// the last parameter to MergeAll deletes tomerge arrays
+	
+	SpTuples<IU,NUO> * C_tuples = MultiwayMerge<SR>(tomerge, C_m, C_n,true);
+	UDERO * C = new UDERO(*C_tuples, false);
 
-	if(!clearB)
-		const_cast< UDERB* >(B.spSeq)->Transpose();	// transpose back to original
+	//if(!clearB)
+	//	const_cast< UDERB* >(B.spSeq)->Transpose();	// transpose back to original
 
 	return SpParMat<IU,NUO,UDERO> (C, GridC);		// return the result object
 }
@@ -1461,24 +1477,40 @@ void SpMV (const SpParMat<IU,NUM,UDER> & A, const FullyDistSpVec<IU,IVT> & x, Fu
     double t3=MPI_Wtime();
     cblas_localspmvtime += (t3-t2);
 #endif
-    
+	
+
     if(x.commGrid->GetGridCols() == 1)
     {
         y.ind.resize(sendcnt[0]);
         y.num.resize(sendcnt[0]);
 
+
+		if(optbuf.totmax > 0 )	// graph500 optimization enabled
+		{
 #ifdef THREADED
 #pragma omp parallel for
 #endif
-        for(int i=0; i<sendcnt[0]; i++)
-        {
-            y.ind[i] = sendindbuf[i];
-            y.num[i] = sendnumbuf[i];
-        }
-        DeleteAll(sendindbuf, sendnumbuf,sendcnt, sdispls);
+			for(int i=0; i<sendcnt[0]; i++)
+			{
+				y.ind[i] = optbuf.inds[i];
+				y.num[i] = optbuf.nums[i];
+			}
+		}
+		else
+		{
+#ifdef THREADED
+#pragma omp parallel for
+#endif
+			for(int i=0; i<sendcnt[0]; i++)
+			{
+				y.ind[i] = sendindbuf[i];
+				y.num[i] = sendnumbuf[i];
+			}
+			DeleteAll(sendindbuf, sendnumbuf,sdispls);
+		}
+		delete [] sendcnt;
         return;
     }
-	
 	int * rdispls = new int[rowneighs];
 	int * recvcnt = new int[rowneighs];
 	MPI_Alltoall(sendcnt, 1, MPI_INT, recvcnt, 1, MPI_INT, RowWorld);       // share the request counts
@@ -1489,6 +1521,7 @@ void SpMV (const SpParMat<IU,NUM,UDER> & A, const FullyDistSpVec<IU,IVT> & x, Fu
 	{
 		rdispls[i+1] = rdispls[i] + recvcnt[i];
 	}
+	
 	int totrecv = accumulate(recvcnt,recvcnt+rowneighs,0);	
 	int32_t * recvindbuf = new int32_t[totrecv];
 	OVT * recvnumbuf = new OVT[totrecv];
@@ -1562,9 +1595,16 @@ void SpMV (const SpParMat<IU,NUM,UDER> & A, const FullyDistSpVec<IU,IVT> & x, Fu
     SpMV<SR>(A, x, y, indexisvalue, optbuf, SPA);
 }
 
+template <typename SR, typename IVT, typename OVT, typename IU, typename NUM, typename UDER>
+void SpMV (const SpParMat<IU,NUM,UDER> & A, const FullyDistSpVec<IU,IVT> & x, FullyDistSpVec<IU,OVT> & y, bool indexisvalue, OptBuf<int32_t, OVT > & optbuf)
+{
+	PreAllocatedSPA<IU,NUM,OVT> SPA;
+	SpMV<SR>(A, x, y, indexisvalue, optbuf, SPA);
+}
+
 
 /**
- * Automatic type promotion is ONLY done here, all the callee functions (in Friends.h and below) are initialized with the promoted type 
+ * Automatic type promotion is ONLY done here, all the callee functions (in Friends.h and below) are initialized with the promoted type
  * If indexisvalues = true, then we do not need to transfer values for x (happens for BFS iterations with boolean matrices and integer rhs vectors)
  **/
 template <typename SR, typename IU, typename NUM, typename UDER>

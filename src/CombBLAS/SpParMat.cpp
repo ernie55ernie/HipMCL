@@ -41,6 +41,7 @@ extern "C" {
 #include <mpi.h>
 #include <fstream>
 #include <algorithm>
+#include <set>
 #include <stdexcept>
 using namespace std;
 
@@ -2546,7 +2547,7 @@ SpParMat< IT,NT,DER >::SpParMat (IT total_m, IT total_n, const FullyDistVec<IT,I
     }
     else
     {
-        SparseCommon(data, locsize, total_m, total_n, max<NT>());
+        SparseCommon(data, locsize, total_m, total_n, maximum<NT>());
     }
 }
 
@@ -3114,11 +3115,277 @@ void SpParMat< IT,NT,DER >::SaveGathered(string filename, HANDLER handler, bool 
 	}
 }
 
-
-
 //! Handles all sorts of orderings as long as there are no duplicates
+//! Does not take matrix market banner (only tuples)
+//! Data can be load imbalanced and the vertex labels can be arbitrary strings
+//! Replaces ReadDistribute for imbalanced arbitrary input in tuples format
+template <class IT, class NT, class DER>
+template <typename _BinaryOperation>
+FullyDistVec<IT,string> SpParMat< IT,NT,DER >::ReadGeneralizedTuples (const string & filename, _BinaryOperation BinOp)
+{       
+    FILE *f;
+    int myrank = commGrid->GetRank();
+    int nprocs = commGrid->GetSize();     
+
+    struct stat st;     // get file size
+    if (stat(filename.c_str(), &st) == -1)
+    {
+        MPI_Abort(MPI_COMM_WORLD, NOFILE);
+    }
+    int64_t file_size = st.st_size;
+    MPI_Offset fpos, end_fpos;
+    if(myrank == 0)    // the offset needs to be for this rank
+    {
+        cout << "File is " << file_size << " bytes" << endl;
+        fclose(f);
+    }
+    fpos = myrank * file_size / nprocs;
+
+    if(myrank != (nprocs-1)) end_fpos = (myrank + 1) * file_size / nprocs;
+    else end_fpos = file_size;
+
+    MPI_File mpi_fh;
+    MPI_File_open (commGrid->commWorld, const_cast<char*>(filename.c_str()), MPI_MODE_RDONLY, MPI_INFO_NULL, &mpi_fh);
+
+    
+    typedef map<string, uint64_t> KEYMAP;	// due to collusions in MurmurHash, make the key to the std:map the string itself
+    vector< KEYMAP > allkeys;	// map keeps the outgoing data unique, we could have applied this to HipMer too
+
+    vector<string> lines;
+    bool finished = SpParHelper::FetchBatch(mpi_fh, fpos, end_fpos, true, lines, myrank);
+    int64_t entriesread = lines.size();
+    SpHelper::ProcessLinesWithStringKeys(allkeys, lines,nprocs);
+
+    while(!finished)
+    {
+        finished = SpParHelper::FetchBatch(mpi_fh, fpos, end_fpos, false, lines, myrank);
+        entriesread += lines.size();
+    	SpHelper::ProcessLinesWithStringKeys(allkeys, lines,nprocs);
+    }
+    int64_t allentriesread;
+    MPI_Reduce(&entriesread, &allentriesread, 1, MPIType<int64_t>(), MPI_SUM, 0, commGrid->commWorld);
+#ifdef COMBBLAS_DEBUG
+    if(myrank == 0)
+        cout << "Initial reading finished. Total number of entries read across all processors is " << allentriesread << endl;
+#endif
+
+    int * sendcnt = new int[nprocs];
+    int * recvcnt = new int[nprocs];
+    for(int i=0; i<nprocs; ++i)
+	sendcnt[i] = allkeys[i].size();
+
+    MPI_Alltoall(sendcnt, 1, MPI_INT, recvcnt, 1, MPI_INT, commGrid->GetWorld()); // share the counts
+    int * sdispls = new int[nprocs]();
+    int * rdispls = new int[nprocs]();
+    partial_sum(sendcnt, sendcnt+nprocs-1, sdispls+1);
+    partial_sum(recvcnt, recvcnt+nprocs-1, rdispls+1);
+    IT totsend = accumulate(sendcnt,sendcnt+nprocs, static_cast<IT>(0));
+    IT totrecv = accumulate(recvcnt,recvcnt+nprocs, static_cast<IT>(0));	
+
+    typedef pair<char[MAXVERTNAME], uint64_t> TYPE2SEND;
+    TYPE2SEND * senddata = new TYPE2SEND[totsend];	
+
+    #pragma omp parallel for
+    for(int i=0; i<nprocs; ++i)
+    {
+	size_t j = 0;
+	for(auto pobj:allkeys[i])
+	{
+		char vname[MAXVERTNAME];
+		// char * strcpy ( char * destination, const char * source );
+		// Copies the C string pointed by source into the array pointed by destination, including the terminating null character
+		std::strcpy(vname, pobj.first.c_str());
+		senddata[sdispls[i]+j] = make_pair(vname, pobj.second);
+		j++;
+	}
+    }
+    MPI_Datatype MPI_HASH;
+    MPI_Type_contiguous(sizeof(TYPE2SEND), MPI_CHAR, &MPI_HASH);
+    MPI_Type_commit(&MPI_HASH);
+
+    TYPE2SEND * recvdata = new TYPE2SEND[totrecv];	
+    MPI_Alltoallv(senddata, sendcnt, sdispls, MPI_HASH, recvdata, recvcnt, rdispls, MPI_HASH, commGrid->GetWorld());
+    // do not delete send buffers yet as we will use them to recv back the data
+    MPI_Type_free(&MPI_HASH);
+    
+    std::set< std::pair<uint64_t, string>  > uniqsorted;
+    for(IT i=0; i< totrecv; ++i)
+    {
+	    uniqsorted.insert(make_pair(recvdata[i].second, string(recvdata[i].first)));
+    }
+    uint64_t uniqsize = uniqsorted.size();
+    
+#ifdef COMBBLAS_DEBUG
+    if(myrank == 0)
+	    cout << "out of " << totrecv << " vertices received, " << uniqsize << " were unique" << endl;
+#endif
+    uint64_t sizeuntil = 0;
+    uint64_t totallength = 0;
+    MPI_Exscan( &uniqsize, &sizeuntil, 1, MPIType<uint64_t>(), MPI_SUM, commGrid->GetWorld() );
+    MPI_Allreduce(&uniqsize, &totallength, 1,  MPIType<uint64_t>(), MPI_SUM, commGrid->GetWorld());
+    if(myrank == 0) sizeuntil = 0;  // because MPI_Exscan says the recvbuf in process 0 is undefined
+
+    FullyDistVec<IT,string> distmapper(commGrid, totallength, string(""));	// ABAB: Only restricted operations should be allowed
+	
+    KEYMAP invindex;
+    uint64_t locindex = 0;
+    vector< vector< IT > > locs_send(nprocs);
+    vector< vector< string > > data_send(nprocs);
+    int * map_scnt = new int[nprocs]();	// send counts for this map only (to no confuse with the other sendcnt)
+    for(auto itr = uniqsorted.begin(); itr != uniqsorted.end(); ++itr)
+    {
+	    uint64_t globalindex = sizeuntil + locindex;
+	    invindex.insert(make_pair(itr->second, globalindex));
+	    
+	    IT newlocid;	
+	    int owner = distmapper.Owner(globalindex, newlocid);
+	    locs_send[owner].push_back(newlocid);
+	    data_send[owner].push_back(itr->second);
+	    sendcnt[owner]++;
+	    locindex++;
+    }
+    uniqsorted.clear();	// clear memory
+
+    /* BEGIN: Redistributing the permutation vector to fit the FullyDistVec semantics */ 
+    int * map_rcnt = new int[nprocs];
+    MPI_Alltoall(map_scnt, 1, MPI_INT, map_rcnt, 1, MPI_INT, commGrid->GetWorld());  
+    int * map_sdspl = new int[nprocs]();
+    int * map_rdspl = new int[nprocs]();
+    partial_sum(map_scnt, map_scnt+nprocs-1, map_sdspl+1);
+    partial_sum(map_rcnt, map_rcnt+nprocs-1, map_rdspl+1);
+    IT totmapsend = map_sdspl[nprocs-1] + map_scnt[nprocs-1];
+    IT totmaprecv = map_rdspl[nprocs-1] + map_rcnt[nprocs-1];
+
+    // sendbuf is a pointer to array of MAXVERTNAME chars. 
+    // Explicit grouping syntax is due to precedence of [] over *
+    // char* sendbuf[MAXVERTNAME] would have declared a MAXVERTNAME-length array of char pointers
+    char (*sendbuf)[MAXVERTNAME];	// each sendbuf[i] is type char[MAXVERTNAME]
+    sendbuf = (char (*)[MAXVERTNAME]) malloc(sizeof(char[MAXVERTNAME])* totmapsend);	// notice that this is allocating a contiguous block of memory
+    
+    IT * sendinds =  new IT[totmapsend];
+    for(int i=0; i<nprocs; ++i)
+    { 
+	    int loccnt = 0;
+	    for(string s:data_send[i])
+	    {
+		    char vname[MAXVERTNAME];
+		    std::strcpy(sendbuf[map_sdspl[i]+loccnt], s.c_str());
+	    }
+	    vector<string>().swap(data_send[i]);	// free memory
+    }
+    for(int i=0; i<nprocs; ++i)	      // sanity check: received indices should be sorted by definition
+    { 
+        copy(locs_send[i].begin(), locs_send[i].end(), sendinds+map_sdspl[i]);
+        vector<IT>().swap(locs_send[i]);	// free memory
+    }
+
+    char (*recvbuf)[MAXVERTNAME];
+    recvbuf = malloc(sizeof(char[MAXVERTNAME])* totmaprecv);
+
+    MPI_Datatype MPI_STRING;	// this is not necessary (we could just use char) but easier for bookkeeping
+    MPI_Type_contiguous(sizeof(char[MAXVERTNAME]), MPI_CHAR, &MPI_STRING);
+    MPI_Type_commit(&MPI_STRING);
+
+    MPI_Alltoallv(sendbuf, map_scnt, map_sdspl, MPI_STRING, recvbuf, recvcnt, rdispls, MPI_STRING, commGrid->GetWorld());
+    free(sendbuf);	// can't delete[] so use free
+    MPI_Type_free(&MPI_STRING);
+
+    IT * recvinds = new IT[totmaprecv];
+    MPI_Alltoallv(sendinds, map_scnt, map_sdspl, MPIType<IT>(), recvinds, recvcnt, rdispls, MPIType<IT>(), commGrid->GetWorld());
+    DeleteAll(sendinds, sendcnt, sdispls, rdispls, recvcnt);
+
+    if(!is_sorted(recvinds, recvinds+totmaprecv))
+	    cout << "Assertion failed at proc " << myrank << ": Received indices are not sorted, this is unexpected" << endl;
+
+    for(IT i=0; i< totmaprecv; ++i)
+    {
+	assert(i == recvinds[i]);
+	distmapper.arr[i] = string(recvbuf[i]);
+    }
+    free(recvbuf);
+    delete [] recvinds;
+    /* END: Redistributing the permutation vector to fit the FullyDistVec semantics */ 
+
+
+    for(IT i=0; i< totrecv; ++i)
+    {
+	    auto resp = invindex.find(string(recvdata[i].first));
+	    if (resp != invindex.end())
+	    {
+		recvdata[i].second = resp->second;	// now instead of random numbers, recvdata's second entry will be its new index
+	    }
+	    else
+		cout << "Assertion failed at proc " << myrank << ": the absence of the entry in invindex is unexpected!!!" << endl;
+    }
+    MPI_Alltoallv(recvdata, recvcnt, rdispls, MPI_HASH, senddata, sendcnt, sdispls, MPI_HASH, commGrid->GetWorld());    
+    DeleteAll(recvdata, sendcnt, recvcnt, sdispls, rdispls);
+
+    KEYMAP ultimateperm;	// the ultimate permutation
+    for(IT i=0; i< totsend; ++i)
+    {
+	    auto ret = ultimateperm.emplace(make_pair(string(senddata[i].first), senddata[i].second));
+	    if(!ret->second)	// the second is the boolean that tells success
+	    {
+		cout << "the duplication in ultimateperm is unexpected!!!" << endl;
+	    }
+    }
+    
+    // rename the data now, first reset file pointers
+    fpos = myrank * file_size / nprocs;
+
+    if(myrank != (nprocs-1)) end_fpos = (myrank + 1) * file_size / nprocs;
+    else end_fpos = file_size;
+
+    typedef typename DER::LocalIT LIT;
+    vector<LIT> rows;
+    vector<LIT> cols;
+    vector<NT> vals;
+
+    finished = SpParHelper::FetchBatch(mpi_fh, fpos, end_fpos, true, lines, myrank);
+    entriesread = lines.size();
+   
+    SpHelper::ProcessStrLinesNPermute(rows, cols, vals, lines, ultimateperm);
+
+    while(!finished)
+    {
+        finished = SpParHelper::FetchBatch(mpi_fh, fpos, end_fpos, false, lines, myrank);
+        entriesread += lines.size();
+    	SpHelper::ProcessStrLinesNPermute(rows, cols, vals, lines, ultimateperm);
+    }
+    allentriesread;
+    MPI_Reduce(&entriesread, &allentriesread, 1, MPIType<int64_t>(), MPI_SUM, 0, commGrid->commWorld);
+#ifdef COMBBLAS_DEBUG
+    if(myrank == 0)
+        cout << "Second reading finished. Total number of entries read across all processors is " << allentriesread << endl;
+#endif
+    vector< vector < tuple<LIT,LIT,NT> > > data(nprocs);
+    
+    LIT locsize = rows.size();   // remember: locsize != entriesread (unless the matrix is unsymmetric)
+    for(LIT i=0; i<locsize; ++i)
+    {
+        LIT lrow, lcol;
+        int owner = Owner(totallength, totallength, rows[i], cols[i], lrow, lcol);
+        data[owner].push_back(make_tuple(lrow,lcol,vals[i]));
+    }
+    vector<LIT>().swap(rows);
+    vector<LIT>().swap(cols);
+    vector<NT>().swap(vals);	
+
+#ifdef COMBBLAS_DEBUG
+    if(myrank == 0)
+        cout << "Packing to recepients finished, about to send..." << endl;
+#endif
+    
+    if(spSeq)   delete spSeq;
+    SparseCommon(data, locsize, totallength, totallength, BinOp);
+    return distmapper;
+}
+
+
+
+//! Handles all sorts of orderings, even duplicates (what happens to them is determined by BinOp)
 //! Requires proper matrix market banner at the moment
-//! Might replace ReadDistribute in the long term
+//! Replaces ReadDistribute for properly load balanced input in matrix market format
 template <class IT, class NT, class DER>
 template <typename _BinaryOperation>
 void SpParMat< IT,NT,DER >::ParallelReadMM (const string & filename, bool onebased, _BinaryOperation BinOp)
