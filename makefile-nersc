@@ -4,35 +4,42 @@ GCCDEB = -g -fno-inline -DMPICH_IGNORE_CXX_SEEK -DGRAPH_GENERATOR_SEQ #-DDEBUG
 OPTPGI = -fast -Mipa=fast,inline -Msmartalloc --zc_eh -DMPICH_IGNORE_CXX_SEEK -DGRAPH_GENERATOR_SEQ 
 COMPILER = CC 
 GCCFLAGS = $(GCCOPT) -DTIMING 
-PGIFLAGS = $(INCADD) $(OPTPGI) -DCOMBBLAS_BOOST
-CRAYFLAGS = $(INCADD) -DCOMBBLAS_BOOST -DCRAYCOMP -h msglevel_4
+PGIFLAGS = $(OPTPGI) -DCOMBBLAS_BOOST
+CRAYFLAGS = -DCOMBBLAS_BOOST -DCRAYCOMP -h msglevel_4
 FLAGS = $(GCCFLAGS) -std=c++11 -std=gnu++14 -DTHREADED -fopenmp -DCOMBBLAS_DEBUG -DKSELECTLIMIT=40
-COMBBLAS = ..
 
-mmio.o: ../mmio.c
-	cc $(INCADD) $(FLAGS) -c -o mmio.o ../mmio.c
+COMBBLAS = src/CombBLAS
+BIN = bin
+SRC = src
 
-CommGrid.o:	../CommGrid.cpp ../CommGrid.h
-	$(COMPILER) $(FLAGS) -c -o CommGrid.o ../CommGrid.cpp 
+all: hipmcl mclconvert
 
-MPIType.o:	../MPIType.cpp ../MPIType.h
-	$(COMPILER) $(FLAGS) -c -o MPIType.o ../MPIType.cpp 
+$(COMBBLAS)/CommGrid.o:	$(COMBBLAS)/CommGrid.cpp $(COMBBLAS)/CommGrid.h
+	$(COMPILER)  $(FLAGS) -c -o $(COMBBLAS)/CommGrid.o $(COMBBLAS)/CommGrid.cpp 
 
-MemoryPool.o:	../MemoryPool.cpp ../SpDefs.h
-	$(COMPILER) $(FLAGS) -c -o MemoryPool.o ../MemoryPool.cpp 
+$(COMBBLAS)/mmio.o: $(COMBBLAS)/mmio.c
+	cc $(FLAGS) -c -o $(COMBBLAS)/mmio.o $(COMBBLAS)/mmio.c
 
-MCL.o:  MCL.cpp CC.h ../SpDCCols.cpp ../dcsc.cpp ../SpHelper.h ../SpParMat.h ../ParFriends.h ../SpParMat.cpp ../SpDefs.h ../SpTuples.cpp
-	$(COMPILER) $(FLAGS) -DMCLMEMORY -c -o MCL.o MCL.cpp
+$(COMBBLAS)/MPIType.o:	$(COMBBLAS)/MPIType.cpp $(COMBBLAS)/MPIType.h
+	$(COMPILER) $(FLAGS) -c -o $(COMBBLAS)/MPIType.o $(COMBBLAS)/MPIType.cpp
 
+$(SRC)/HipMCL.o:  $(SRC)/HipMCL.cpp $(SRC)/CC.h $(COMBBLAS)/SpParMat.h $(COMBBLAS)/ParFriends.h $(COMBBLAS)/SpParMat.cpp
+	$(COMPILER) $(FLAGS) -DMCLMEMORY -c -o $(SRC)/HipMCL.o $(SRC)/HipMCL.cpp 
 
+$(SRC)/mclconvert.o: $(SRC)/MCLConvert.cpp
+	$(COMPILER) $(FLAGS) -c -o $(SRC)/mclconvert.o $(SRC)/MCLConvert.cpp  
 
-mcl:	CommGrid.o MPIType.o MCL.o mmio.o
-	$(COMPILER) $(FLAGS) -o mcl MCL.o mmio.o CommGrid.o MPIType.o
-
+hipmcl:	$(SRC)/HipMCL.o  $(COMBBLAS)/CommGrid.o $(COMBBLAS)/MPIType.o $(COMBBLAS)/mmio.o
+	$(COMPILER) $(FLAGS)  -o $(BIN)/hipmcl $(SRC)/HipMCL.o $(COMBBLAS)/mmio.o $(COMBBLAS)/CommGrid.o $(COMBBLAS)/MPIType.o
+mclconvert: $(SRC)/mclconvert.o 
+	$(COMPILER) $(FLAGS) -o $(BIN)/mclconvert $(SRC)/mclconvert.o  
 
 
 clean:
-
-	rm -f mcl
+	
+	rm -f $(BIN)/hipmcl
+	rm -f $(BIN)/mclconvert 
+	rm -f $(SRC)/*.o
 	rm -f *.o
+	rm -f $(COMBBLAS)/*.o
 
