@@ -6,7 +6,7 @@ COMPILER = CC
 GCCFLAGS = $(GCCOPT) -DTIMING 
 PGIFLAGS = $(OPTPGI) -DCOMBBLAS_BOOST
 CRAYFLAGS = -DCOMBBLAS_BOOST -DCRAYCOMP -h msglevel_4
-FLAGS = $(GCCFLAGS) -std=c++11 -std=gnu++14 -DTHREADED -fopenmp -DCOMBBLAS_DEBUG -DKSELECTLIMIT=40
+FLAGS = $(GCCFLAGS) -std=c++11 -std=gnu++14 -DTHREADED -fopenmp #-DCOMBBLAS_DEBUG -DKSELECTLIMIT=40
 
 COMBBLAS = src/CombBLAS
 BIN = bin
@@ -23,14 +23,17 @@ $(COMBBLAS)/mmio.o: $(COMBBLAS)/mmio.c
 $(COMBBLAS)/MPIType.o:	$(COMBBLAS)/MPIType.cpp $(COMBBLAS)/MPIType.h
 	$(COMPILER) $(FLAGS) -c -o $(COMBBLAS)/MPIType.o $(COMBBLAS)/MPIType.cpp
 
+$(COMBBLAS)/hash.o:	$(COMBBLAS)/hash.cpp $(COMBBLAS)/hash.hpp
+	$(COMPILER) $(FLAGS) -c -o $(COMBBLAS)/hash.o $(COMBBLAS)/hash.cpp
+
 $(SRC)/HipMCL.o:  $(SRC)/HipMCL.cpp $(SRC)/CC.h $(COMBBLAS)/SpParMat.h $(COMBBLAS)/ParFriends.h $(COMBBLAS)/SpParMat.cpp
 	$(COMPILER) $(FLAGS) -DMCLMEMORY -c -o $(SRC)/HipMCL.o $(SRC)/HipMCL.cpp 
 
 $(SRC)/mclconvert.o: $(SRC)/MCLConvert.cpp
 	$(COMPILER) $(FLAGS) -c -o $(SRC)/mclconvert.o $(SRC)/MCLConvert.cpp  
 
-hipmcl:	$(SRC)/HipMCL.o  $(COMBBLAS)/CommGrid.o $(COMBBLAS)/MPIType.o $(COMBBLAS)/mmio.o
-	$(COMPILER) $(FLAGS)  -o $(BIN)/hipmcl $(SRC)/HipMCL.o $(COMBBLAS)/mmio.o $(COMBBLAS)/CommGrid.o $(COMBBLAS)/MPIType.o
+hipmcl:	$(SRC)/HipMCL.o  $(COMBBLAS)/CommGrid.o $(COMBBLAS)/MPIType.o $(COMBBLAS)/mmio.o $(COMBBLAS)/hash.o
+	$(COMPILER) $(FLAGS)  -o $(BIN)/hipmcl $(SRC)/HipMCL.o $(COMBBLAS)/mmio.o $(COMBBLAS)/CommGrid.o $(COMBBLAS)/MPIType.o $(COMBBLAS)/hash.o
 mclconvert: $(SRC)/mclconvert.o 
 	$(COMPILER) $(FLAGS) -o $(BIN)/mclconvert $(SRC)/mclconvert.o  
 
