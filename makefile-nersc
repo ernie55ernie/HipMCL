@@ -26,7 +26,7 @@ $(COMBBLAS)/MPIType.o:	$(COMBBLAS)/MPIType.cpp $(COMBBLAS)/MPIType.h
 $(COMBBLAS)/hash.o:	$(COMBBLAS)/hash.cpp $(COMBBLAS)/hash.hpp
 	$(COMPILER) $(FLAGS) -c -o $(COMBBLAS)/hash.o $(COMBBLAS)/hash.cpp
 
-$(SRC)/HipMCL.o:  $(SRC)/HipMCL.cpp $(SRC)/CC.h $(COMBBLAS)/SpParMat.h $(COMBBLAS)/ParFriends.h $(COMBBLAS)/SpParMat.cpp
+$(SRC)/HipMCL.o:  $(SRC)/HipMCL.cpp $(SRC)/CC.h $(SRC)/WriteMCLClusters.h $(COMBBLAS)/SpParMat.h $(COMBBLAS)/ParFriends.h $(COMBBLAS)/SpParMat.cpp
 	$(COMPILER) $(FLAGS) -DMCLMEMORY -c -o $(SRC)/HipMCL.o $(SRC)/HipMCL.cpp 
 
 $(SRC)/mclconvert.o: $(SRC)/MCLConvert.cpp
