@@ -6,7 +6,8 @@ COMPILER = CC
 GCCFLAGS = $(GCCOPT) -DTIMING 
 PGIFLAGS = $(OPTPGI) -DCOMBBLAS_BOOST
 CRAYFLAGS = -DCOMBBLAS_BOOST -DCRAYCOMP -h msglevel_4
-FLAGS = $(GCCFLAGS) -std=c++11 -std=gnu++14 -DTHREADED -fopenmp #-DCOMBBLAS_DEBUG -DKSELECTLIMIT=40
+FLAGS = $(GCCFLAGS) -std=c++11 -std=gnu++14 -DTHREADED -fopenmp #$(MCL_FLAGS) #-DCOMBBLAS_DEBUG -DKSELECTLIMIT=40
+MCL_FLAGS = -DSHOW_MEMORY_USAGE
 
 COMBBLAS = src/CombBLAS
 BIN = bin
@@ -27,7 +28,7 @@ $(COMBBLAS)/hash.o:	$(COMBBLAS)/hash.cpp $(COMBBLAS)/hash.hpp
 	$(COMPILER) $(FLAGS) -c -o $(COMBBLAS)/hash.o $(COMBBLAS)/hash.cpp
 
 $(SRC)/HipMCL.o:  $(SRC)/HipMCL.cpp $(SRC)/CC.h $(SRC)/WriteMCLClusters.h $(COMBBLAS)/SpParMat.h $(COMBBLAS)/ParFriends.h $(COMBBLAS)/SpParMat.cpp
-	$(COMPILER) $(FLAGS) -DMCLMEMORY -c -o $(SRC)/HipMCL.o $(SRC)/HipMCL.cpp 
+	$(COMPILER) $(FLAGS) -c -o $(SRC)/HipMCL.o $(SRC)/HipMCL.cpp 
 
 $(SRC)/mclconvert.o: $(SRC)/MCLConvert.cpp
 	$(COMPILER) $(FLAGS) -c -o $(SRC)/mclconvert.o $(SRC)/MCLConvert.cpp  

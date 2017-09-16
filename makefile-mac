@@ -2,7 +2,8 @@
 OPT = -DNDEBUG -O2 -DMPICH_IGNORE_CXX_SEEK -DGRAPH_GENERATOR_SEQ -Wreturn-type
 DEB = -g -O0 -fno-inline -DMPICH_IGNORE_CXX_SEEK -DGRAPH_GENERATOR_SEQ -Wreturn-type -DDEBUG 
 COMPILER = mpicxx -std=c++11 -std=c++14 -DTHREADED -fopenmp  -fpermissive  
-FLAGS = $(OPT)  -Wall -DTIMING #-DCOMBBLAS_DEBUG 
+FLAGS = $(OPT)  -Wall -DTIMING #-DCOMBBLAS_DEBUG #$(MCL_FLAGS)
+MCL_FLAGS = -DSHOW_MEMORY_USAGE
 COMBBLAS = src/CombBLAS
 BIN = bin
 SRC = src
@@ -22,7 +23,7 @@ $(COMBBLAS)/hash.o:	$(COMBBLAS)/hash.cpp $(COMBBLAS)/hash.hpp
 	$(COMPILER) $(FLAGS) -c -o $(COMBBLAS)/hash.o $(COMBBLAS)/hash.cpp
 
 $(SRC)/HipMCL.o:  $(SRC)/HipMCL.cpp $(SRC)/CC.h $(SRC)/WriteMCLClusters.h $(COMBBLAS)/SpParMat.h $(COMBBLAS)/ParFriends.h $(COMBBLAS)/SpParMat.cpp
-	$(COMPILER) $(FLAGS) -DMCLMEMORY -c -o $(SRC)/HipMCL.o $(SRC)/HipMCL.cpp 
+	$(COMPILER) $(FLAGS) -c -o $(SRC)/HipMCL.o $(SRC)/HipMCL.cpp 
 $(SRC)/mclconvert.o: $(SRC)/MCLConvert.cpp
 	$(COMPILER) $(FLAGS) -c -o $(SRC)/mclconvert.o $(SRC)/MCLConvert.cpp 
 

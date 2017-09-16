@@ -273,7 +273,7 @@ void ShowOptions()
     
     
     runinfo << "Input/Output file" << endl;
-    runinfo << "    -M <input file name> (mandatory)" << endl;
+    runinfo << "    -M <input file name (labeled triples format)> (mandatory)" << endl;
     runinfo << "    --matrix-market : if provided, the input file is in the matrix market format (default: the file is in labeled triples format)" << endl;
     runinfo << "    -base <index of the first vertex in the matrix market file, 0|1> (default: 1) " << endl;
     runinfo << "    -o <output filename> (default: input_file_name.hipmcl )" << endl;
@@ -305,8 +305,11 @@ void ShowOptions()
     runinfo << "======================================" << endl;
     runinfo << "     Few examples    " << endl;
     runinfo << "======================================" << endl;
-    runinfo << "Example on a laption with 0-indexed matrix and random permutation on:\n./hipmcl -M graph.mtx -I 2 -base 0 -rand 1 -phases 1 -o graph.hipmcl" << endl;
-    runinfo << "Example on the NERSC/Edison system with 16 nodes and 24 threads per node: \nsrun -N 16 -n 16 -c 24  ./hipmcl -M graph.mtx -per-process-mem 64 -o graph.hipmcl" << endl;
+    runinfo << "Example with with a graph in labeled triples format on a laptop with 8GB memory and 8 cores:\nexport OMP_NUM_THREADS=8\nbin/hipmcl -M data/sevenvertexgraph.txt -I 2 -per-process-mem 8" << endl;
+    runinfo << "Same as above with 4 processes and 2 theaded per process cores:\nexport OMP_NUM_THREADS=2\nmpirun -np 4 bin/hipmcl -M data/sevenvertexgraph.txt -I 2 -per-process-mem 2" << endl;
+    runinfo << "Example with a graph in matrix market format:\nbin/hipmcl -M data/sevenvertex.mtx --matrix-market -base 1 -I 2 -per-process-mem 8" << endl;
+    
+    runinfo << "Example on the NERSC/Edison system with 16 nodes and 24 threads per node: \nsrun -N 16 -n 16 -c 24  bin/hipmcl -M data/hep-th.mtx --matrix-market -base 1 -per-process-mem 64 -o hep-th.hipmcl" << endl;
     SpParHelper::Print(runinfo.str());
 }
 
@@ -364,7 +367,7 @@ void AdjustLoops(Dist::MPI_DCCols & A)
     A.Apply([](double val){return val==numeric_limits<double>::min() ? 1.0 : val;}); // for isolated vertices
     A.AddLoops(colmaxs);
     ostringstream outs;
-    outs << "Adjusted loops according to default mcl parameters" << endl;
+    outs << "Adjusting loops" << endl;
     SpParHelper::Print(outs.str());
 }
 
@@ -465,7 +468,7 @@ FullyDistVec<int64_t, int64_t> HipMCL(Dist::MPI_DCCols & A, HipMCLParam & param)
         double newbalance = A.LoadImbalance();
         double t3=MPI_Wtime();
         stringstream s;
-        s << "Iteration: " << std::setw(3) << it << " chaos: " << setprecision(3) << chaos << " nnz: " << A.getnnz() << "  load-balance: "<< newbalance << " Total time: " << (t3-t1) << endl;
+        s << "Iteration# "  << std::setw(3) << it << " : "  << " chaos: " << setprecision(3) << chaos << " #edges: " << A.getnnz() << "  load-balance: "<< newbalance << " Time: " << (t3-t1) << endl;
         SpParHelper::Print(s.str());
         it++;
         
@@ -484,12 +487,14 @@ FullyDistVec<int64_t, int64_t> HipMCL(Dist::MPI_DCCols & A, HipMCLParam & param)
     MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
     if(myrank==0)
     {
-        cout << "Squaring: " << mcl_Abcasttime + mcl_Bbcasttime + mcl_localspgemmtime + mcl_multiwaymergetime << endl;
+        cout << "================detailed timing==================" << endl;
+        
+        cout << "Expansion: " << mcl_Abcasttime + mcl_Bbcasttime + mcl_localspgemmtime + mcl_multiwaymergetime << endl;
         cout << "       Abcast= " << mcl_Abcasttime << endl;
         cout << "       Bbcast= " << mcl_Bbcasttime << endl;
         cout << "       localspgemm= " << mcl_localspgemmtime << endl;
         cout << "       multiwaymergetime= "<< mcl_multiwaymergetime << endl;
-        cout << "Pruning: " << mcl_kselecttime + mcl_prunecolumntime << endl;
+        cout << "Prune: " << mcl_kselecttime + mcl_prunecolumntime << endl;
         cout << "       kselect= " << mcl_kselecttime << endl;
         cout << "       prunecolumn= " << mcl_prunecolumntime << endl;
         cout << "Inflation " << tInflate << endl;
@@ -559,21 +564,34 @@ int main(int argc, char* argv[])
     
     if(myrank == 0)
     {
-        cout << "Process Grid (pr x pc x threads): " << sqrt(nprocs) << " x " << sqrt(nprocs) << " x " << nthreads << endl;
+        cout << "\nProcess Grid used (pr x pc x threads): " << sqrt(nprocs) << " x " << sqrt(nprocs) << " x " << nthreads << endl;
     }
     
     
     // show parameters used to run HipMCL
     ShowParam(param);
     
+     if(param.perProcessMem==0)
+     {
+
+         if(myrank == 0)
+         {
+             cout << "******** Number of phases will not be estimated as -per-process-mem option is supplied. It is highly recommended that you provide -per-process-mem option for large-scale runs. *********** " << endl;
+         }
+     }
+    
     
     {
         
         
-        Dist::MPI_DCCols A;	// construct object
+        Dist::MPI_DCCols A(MPI_COMM_WORLD);	// construct object
         FullyDistVec<int64_t, array<char, MAXVERTNAME> > vtxLabels(A.getcommgrid());
         
         // read file
+  
+        ostringstream outs;
+        outs << "Reading input file......";
+    
         double tIO1 = MPI_Wtime();
         if(param.isInputMM)
             A.ParallelReadMM(param.ifilename, param.base, maximum<double>());	// if base=0, then it is implicitly converted to Boolean false
@@ -582,8 +600,8 @@ int main(int argc, char* argv[])
         
         
         tIO = MPI_Wtime() - tIO1;
-        ostringstream outs;
-        outs << "File Read time: " << tIO  << endl;
+
+        outs << " : took " << tIO << " seconds" << endl;
         SpParHelper::Print(outs.str());
         
         // Symmetricize the matrix only if needed
@@ -591,10 +609,11 @@ int main(int argc, char* argv[])
         
         double balance = A.LoadImbalance();
         int64_t nnz = A.getnnz();
+        int64_t nv = A.getnrow();
         outs.str("");
         outs.clear();
+        outs << "Number of vertices: " << nv << " number of edges: "<< nnz << endl;
         outs << "Load balance: " << balance << endl;
-        outs << "Nonzeros: " << nnz << endl;
         SpParHelper::Print(outs.str());
         
         if(param.show)
@@ -628,10 +647,14 @@ int main(int argc, char* argv[])
         
        
         
+        int64_t nclusters = culstLabels.Reduce(maximum<int64_t>(), (int64_t) 0 ) ;
+        nclusters ++; // because of zero based indexing for clusters
+        
         double tend = MPI_Wtime();
         stringstream s2;
-        s2 << "=====================================\n" ;
+        s2 << "Number of clusters: " << nclusters << endl;
         s2 << "Total time: " << (tend-tstart) << endl;
+        s2 <<  "=================================================\n" << endl ;
         SpParHelper::Print(s2.str());
     }
     

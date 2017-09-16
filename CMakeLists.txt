@@ -6,6 +6,7 @@ cmake_minimum_required(VERSION 2.0)
 PROJECT( HipMCL )
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 SET(CMAKE_VERBOSE_MAKEFILE ON)
+add_definitions(-DTIMING -DTHREADED)
 
 INCLUDE(TestCXXAcceptsFlag.cmake)
 CHECK_CXX_ACCEPTS_FLAG("-std=c++11 -std=c++14" C14)
