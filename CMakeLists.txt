@@ -36,9 +36,13 @@ add_executable(hipmcl src/HipMCL.cpp)
 target_link_libraries(hipmcl CombBLASlib )
 
 
+
 ENABLE_TESTING()
 INCLUDE(CTest)
-ADD_TEST( Default_Test mpirun -np 4 bin/hipmcl -M data/hep-th.mtx -I 2 )
+ADD_TEST( Small_triples_test mpirun -np 4 bin/hipmcl -M data/sevenvertexgraph.txt -I 2 )
+ADD_TEST( Small_mtx_test mpirun -np 4 bin/hipmcl -M data/sevenvertex.mtx --matrix-market -base 1 -I 2 )
+ADD_TEST( hepth_mtx_test mpirun -np 4 bin/hipmcl -M data/hep-th.mtx --matrix-market -base 1 -I 2 )
+
 
 
 
