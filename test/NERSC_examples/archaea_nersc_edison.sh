@@ -6,7 +6,7 @@
 #SBATCH -J archaea_edison_36node
 #SBATCH -o archaea_edison_36node.o%j
 
-HIPMCL_EXE=../bin/hipmcl
+HIPMCL_EXE=../../bin/hipmcl
 # Directory where input and output files are stored
 DIR=/project/projectdirs/m1982/HipMCL/archaea
 export OMP_NUM_THREADS=24

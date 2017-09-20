@@ -6,7 +6,7 @@
 #SBATCH -J virus_edison_16node
 #SBATCH -o virus_edison_16node.o%j
 
-HIPMCL_EXE=../bin/hipmcl
+HIPMCL_EXE=../../bin/hipmcl
 # Directory where input and output files are stored
 DIR=/project/projectdirs/m1982/HipMCL/viruses
 export OMP_NUM_THREADS=24

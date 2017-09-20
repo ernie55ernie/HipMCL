@@ -6,7 +6,7 @@
 #SBATCH -J euk_edison_64node
 #SBATCH -o euk_edison_64node.o%j
 
-HIPMCL_EXE=../bin/hipmcl
+HIPMCL_EXE=../../bin/hipmcl
 # Directory where input and output files are stored
 DIR=/project/projectdirs/m1982/HipMCL/eukarya
 export OMP_NUM_THREADS=24
