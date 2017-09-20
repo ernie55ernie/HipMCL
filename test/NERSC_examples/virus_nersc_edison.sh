@@ -15,7 +15,7 @@ N=16
 n=16
 
 # option 1: input in labeled triples format
-IN_FILE=vir_vs_vir_30_50length.indexed.list
+IN_FILE=vir_vs_vir_30_50length.indexed.triples
 srun -N $N -n $n -c 24  --ntasks-per-node=1 --cpu_bind=cores $HIPMCL_EXE -M $DIR/$IN_FILE -I 2 -per-process-mem 64
 
 # option 2: the same input in the matrix market format

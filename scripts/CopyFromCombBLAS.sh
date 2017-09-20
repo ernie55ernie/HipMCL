@@ -1,3 +1,4 @@
+# Only for development perpose
 # Copy necessary files from Combinatorial BLAS development directory to HipMCL release directory
 
 COMBBLAS_DIR=/Users/arifulazad/Documents/Projects/combinatorial-blas-2.0/CombBLAS
