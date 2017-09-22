@@ -19,4 +19,4 @@ n=16
 IN_FILE=../../data/vir_vs_vir_30_50length.indexed.triples
 OUT_FILE=../../data/vir_vs_vir_30_50length.indexed.triples.hipmcl
 
-srun -N $N -n $n -c 68  --ntasks-per-node=1 --cpu_bind=cores numactl -p 1 $HIPMCL_EXE -M $IN_FILE --matrix-market -base 0 -I 2 -per-process-mem 112 -o $OUT_FILE
+srun -N $N -n $n -c 68  --ntasks-per-node=1 --cpu_bind=cores numactl -p 1 $HIPMCL_EXE -M $IN_FILE -I 2 -per-process-mem 112 -o $OUT_FILE
