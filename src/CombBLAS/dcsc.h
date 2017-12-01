@@ -1,11 +1,12 @@
 /****************************************************************/
 /* Parallel Combinatorial BLAS Library (for Graph Computations) */
 /* version 1.6 -------------------------------------------------*/
-/* date: 05/15/2016 --------------------------------------------*/
-/* authors: Ariful Azad, Aydin Buluc, Adam Lugowski ------------*/
+/* date: 6/15/2017 ---------------------------------------------*/
+/* authors: Ariful Azad, Aydin Buluc  --------------------------*/
 /****************************************************************/
 /*
- Copyright (c) 2010-2016, The Regents of the University of California
+ Copyright (c) 2010-2017, The Regents of the University of California
+
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +41,7 @@
 #include "MemoryPool.h"
 #include "promote.h"
 
-using namespace std;
+namespace combblas {
 
 template <class IT, class NT>
 class Dcsc
@@ -128,7 +129,8 @@ private:
 	void getindices (StackEntry<NT, pair<IT,IT> > * multstack, IT & rindex, IT & cindex, IT & j, IT nnz);
 };
 
+}
+
 #include "dcsc.cpp"	
+
 #endif
-
-

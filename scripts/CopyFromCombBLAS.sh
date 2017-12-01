@@ -6,6 +6,7 @@ HIPMCL_DIR=/Users/arifulazad/Documents/Projects/HipMCL/src
 
 #copy necessary files from CombBLAS
 cp $COMBBLAS_DIR/*.cpp $HIPMCL_DIR/CombBLAS/
+cp $COMBBLAS_DIR/*.hpp $HIPMCL_DIR/CombBLAS/
 cp $COMBBLAS_DIR/*.c $HIPMCL_DIR/CombBLAS/
 cp $COMBBLAS_DIR/*.h $HIPMCL_DIR/CombBLAS/
 cp -r $COMBBLAS_DIR/graph500-1.2 $HIPMCL_DIR/CombBLAS/

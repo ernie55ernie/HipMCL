@@ -50,6 +50,7 @@
 #include "WriteMCLClusters.h"
 
 using namespace std;
+using namespace combblas;
 
 #define EPS 0.0001
 
@@ -589,21 +590,19 @@ int main(int argc, char* argv[])
         
         // read file
   
-        ostringstream outs;
-        outs << "Reading input file......";
+        
+        SpParHelper::Print("Reading input file......\n");
     
         double tIO1 = MPI_Wtime();
         if(param.isInputMM)
             A.ParallelReadMM(param.ifilename, param.base, maximum<double>());	// if base=0, then it is implicitly converted to Boolean false
         else // default labeled triples format
             vtxLabels = A.ReadGeneralizedTuples(param.ifilename,  maximum<double>());
-        
-        
-        tIO = MPI_Wtime() - tIO1;
 
+        tIO = MPI_Wtime() - tIO1;
+        ostringstream outs;
         outs << " : took " << tIO << " seconds" << endl;
         SpParHelper::Print(outs.str());
-        
         // Symmetricize the matrix only if needed
         Symmetricize(A);
         

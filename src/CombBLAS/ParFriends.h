@@ -42,7 +42,7 @@
 #include "MultiwayMerge.h"
 
 
-using namespace std;
+namespace combblas {
 
 template <class IT, class NT, class DER>
 class SpParMat;
@@ -365,8 +365,6 @@ SpParMat<IU,NUO,UDERO> MemEfficientSpGEMM (SpParMat<IU,NU1,UDERA> & A, SpParMat<
         SpParHelper::Print("MemEfficientSpGEMM: The value of phases is too small or large. Resetting to 1.\n");
         phases = 1;
     }
-    //if(!CheckSpGEMMCompliance(A,B) )
-      //  return SpParMat< IU,NUO,UDERO >();
     
     int stages, dummy; 	// last two parameters of ProductGrid are ignored for Synch multiplication
     shared_ptr<CommGrid> GridC = ProductGrid((A.commGrid).get(), (B.commGrid).get(), stages, dummy, dummy);
@@ -375,21 +373,28 @@ SpParMat<IU,NUO,UDERO> MemEfficientSpGEMM (SpParMat<IU,NU1,UDERA> & A, SpParMat<
     if(perProcessMemory>0) // estimate the number of phases permitted by memory
     {
         int p;
-        MPI_Comm_size(MPI_COMM_WORLD,&p);
+        MPI_Comm World = GridC->GetWorld();
+        MPI_Comm_size(World,&p);
+        
+        // max nnz(A) in a porcess
         int64_t lannz = A.getlocalnnz();
         int64_t gannz;
+        MPI_Allreduce(&lannz, &gannz, 1, MPIType<int64_t>(), MPI_MAX, World);
+        int64_t inputMem = gannz * 20 * 4; // for four copies (two for SUMMA)
         
-        MPI_Allreduce(&lannz, &gannz, 1, MPIType<int64_t>(), MPI_MAX, MPI_COMM_WORLD);
+        // max nnz(A^2) stored by summa in a porcess
+        int64_t asquareNNZ = EstPerProcessNnzSUMMA(A,B);
+        int64_t asquareMem = asquareNNZ * 24 * 2; // an extra copy in multiway merge and in selection/recovery step
         
-        double d = A.getnnz() / (double)A.getncol();
-        int64_t k = min(max(selectNum, recoverNum), (int64_t)(d*d));
-        int64_t asquareNNZ = (A.getncol() * d * d) /p ;
         
-        int64_t kselectmem = A.getlocalcols() * k * 8 * 3;
-        int64_t outputNNZ = (A.getncol() * k)/p;
+        // estimate kselect memory
+        int64_t d = ceil( (asquareNNZ * sqrt(p))/ B.getlocalcols() ); // average nnz per column in A^2 (it is an overestimate because asquareNNZ is estimated based on unmerged matrices)
+        // this is equivalent to (asquareNNZ * p) / B.getcol()
+        int64_t k = min(max(selectNum, recoverNum), d );
+        int64_t kselectmem = B.getlocalcols() * k * 8 * 3;
         
-        int64_t inputMem = gannz * 20 * 3;
-        int64_t asquareMem = asquareNNZ * 20 * 2;
+        // estimate output memory
+        int64_t outputNNZ = (B.getlocalcols() * k)/sqrt(p);
         int64_t outputMem = outputNNZ * 20 * 2;
         
         //inputMem + outputMem + asquareMem/phases + kselectmem/phases < memory
@@ -400,7 +405,7 @@ SpParMat<IU,NUO,UDERO> MemEfficientSpGEMM (SpParMat<IU,NU1,UDERA> & A, SpParMat<
         }
         
         
-        int64_t maxMemory = kselectmem/phases + inputMem + outputMem + asquareMem / phases;
+       
         
         if(myrank==0)
         {
@@ -409,6 +414,7 @@ SpParMat<IU,NUO,UDERO> MemEfficientSpGEMM (SpParMat<IU,NU1,UDERA> & A, SpParMat<
                 cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n Warning: input and output memory requirement is greater than per-process avaiable memory. Keeping phase to the value supplied at the command line. The program may go out of memory and crash! \n !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
             }
 #ifdef SHOW_MEMORY_USAGE
+            int64_t maxMemory = kselectmem/phases + inputMem + outputMem + asquareMem / phases;
             if(maxMemory>1000000000)
             cout << "phases: " << phases << ": per process memory: " << perProcessMemory << " GB asquareMem: " << asquareMem/1000000000.00 << " GB" << " inputMem: " << inputMem/1000000000.00 << " GB" << " outputMem: " << outputMem/1000000000.00 << " GB" << " kselectmem: " << kselectmem/1000000000.00 << " GB" << endl;
             else
@@ -418,7 +424,6 @@ SpParMat<IU,NUO,UDERO> MemEfficientSpGEMM (SpParMat<IU,NU1,UDERA> & A, SpParMat<
         }
     }
     
-    
     IU C_m = A.spSeq->getnrow();
     IU C_n = B.spSeq->getncol();
     
@@ -427,9 +432,6 @@ SpParMat<IU,NUO,UDERO> MemEfficientSpGEMM (SpParMat<IU,NU1,UDERA> & A, SpParMat<
     
     CopyB.ColSplit(phases, PiecesOfB); // CopyB's memory is destroyed at this point
     MPI_Barrier(GridC->GetWorld());
-    
-
-    
 
     
     IU ** ARecvSizes = SpHelper::allocate2D<IU>(UDERA::esscount, stages);
@@ -491,14 +493,6 @@ SpParMat<IU,NUO,UDERO> MemEfficientSpGEMM (SpParMat<IU,NU1,UDERA> & A, SpParMat<
             mcl_Bbcasttime += (t3-t2);
 #endif
             
-            /*
-            SpTuples<IU,NUO> * C_cont = MultiplyReturnTuples<SR, NUO>
-                                        (*ARecv, *BRecv, // parameters themselves
-                                        false, false,	// transpose information (none are transposed)
-                                         i != Aself, 	// 'delete A' condition
-                                         i != Bself);	// 'delete B' condition
-             
-            */
             
 #ifdef TIMING
             double t4=MPI_Wtime();
@@ -876,7 +870,7 @@ SpParMat<IU, NUO, UDERO> Mult_AnXBn_Synch
 		if(!C_cont->isZero()) 
 			tomerge.push_back(C_cont);
 
-		#ifndef NDEBUG
+		#ifdef COMBBLAS_DEBUG
 		ostringstream outs;
 		outs << i << "th SUMMA iteration"<< endl;
 		SpParHelper::Print(outs.str());
@@ -908,8 +902,110 @@ SpParMat<IU, NUO, UDERO> Mult_AnXBn_Synch
 
 	return SpParMat<IU,NUO,UDERO> (C, GridC);		// return the result object
 }
+    
 
+    
+    /**
+     * Estimate the maximum nnz needed to store in a process from all stages of SUMMA before reduction
+     * @pre { Input matrices, A and B, should not alias }
+     **/
+    template <typename IU, typename NU1, typename NU2, typename UDERA, typename UDERB>
+    IU EstPerProcessNnzSUMMA(SpParMat<IU,NU1,UDERA> & A, SpParMat<IU,NU2,UDERB> & B)
+    
+    {
+        IU nnzC_SUMMA = 0;
+        
+        if(A.getncol() != B.getnrow())
+        {
+            ostringstream outs;
+            outs << "Can not multiply, dimensions does not match"<< endl;
+            outs << A.getncol() << " != " << B.getnrow() << endl;
+            SpParHelper::Print(outs.str());
+            MPI_Abort(MPI_COMM_WORLD, DIMMISMATCH);
+            return nnzC_SUMMA;
+        }
+       
+        int stages, dummy;     // last two parameters of ProductGrid are ignored for Synch multiplication
+        shared_ptr<CommGrid> GridC = ProductGrid((A.commGrid).get(), (B.commGrid).get(), stages, dummy, dummy);
+  
+        MPI_Barrier(GridC->GetWorld());
+        
+        IU ** ARecvSizes = SpHelper::allocate2D<IU>(UDERA::esscount, stages);
+        IU ** BRecvSizes = SpHelper::allocate2D<IU>(UDERB::esscount, stages);
+        SpParHelper::GetSetSizes( *(A.spSeq), ARecvSizes, (A.commGrid)->GetRowWorld());
+        SpParHelper::GetSetSizes( *(B.spSeq), BRecvSizes, (B.commGrid)->GetColWorld());
+        
+        // Remotely fetched matrices are stored as pointers
+        UDERA * ARecv;
+        UDERB * BRecv;
 
+        int Aself = (A.commGrid)->GetRankInProcRow();
+        int Bself = (B.commGrid)->GetRankInProcCol();
+        
+        
+        for(int i = 0; i < stages; ++i)
+        {
+            vector<IU> ess;
+            if(i == Aself)
+            {
+                ARecv = A.spSeq;    // shallow-copy
+            }
+            else
+            {
+                ess.resize(UDERA::esscount);
+                for(int j=0; j< UDERA::esscount; ++j)
+                {
+                    ess[j] = ARecvSizes[j][i];        // essentials of the ith matrix in this row
+                }
+                ARecv = new UDERA();                // first, create the object
+            }
+            
+            SpParHelper::BCastMatrix(GridC->GetRowWorld(), *ARecv, ess, i);    // then, receive its elements
+            ess.clear();
+            
+            if(i == Bself)
+            {
+                BRecv = B.spSeq;    // shallow-copy
+            }
+            else
+            {
+                ess.resize(UDERB::esscount);
+                for(int j=0; j< UDERB::esscount; ++j)
+                {
+                    ess[j] = BRecvSizes[j][i];
+                }
+                BRecv = new UDERB();
+            }
+            
+            SpParHelper::BCastMatrix(GridC->GetColWorld(), *BRecv, ess, i);    // then, receive its elements
+            
+
+            IU* colnnzC = estimateNNZ(*ARecv, *BRecv);
+            IU nzc = BRecv->GetDCSC()->nzc;
+            IU nnzC_stage = 0;
+#ifdef THREADED
+#pragma omp parallel for reduction (+:nnzC_stage)
+#endif
+            for (IU k=0; k<nzc; k++)
+            {
+                nnzC_stage = nnzC_stage + colnnzC[k];
+            }
+            
+            nnzC_SUMMA += nnzC_stage;
+        }
+        
+        SpHelper::deallocate2D(ARecvSizes, UDERA::esscount);
+        SpHelper::deallocate2D(BRecvSizes, UDERB::esscount);
+        
+        IU nnzC_SUMMA_max = 0;
+        MPI_Allreduce(&nnzC_SUMMA, &nnzC_SUMMA_max, 1, MPIType<IU>(), MPI_MAX, GridC->GetWorld());
+        
+        return nnzC_SUMMA_max;
+    }
+    
+
+    
+    
 template <typename MATRIX, typename VECTOR>
 void CheckSpMVCompliance(const MATRIX & A, const VECTOR & x)
 {
@@ -1050,7 +1146,7 @@ void AllGatherVector(MPI_Comm & ColWorld, int trxlocnz, IU lenuntil, int32_t * &
  **/
 template<typename SR, typename IVT, typename OVT, typename IU, typename NUM, typename UDER>
 void LocalSpMV(const SpParMat<IU,NUM,UDER> & A, int rowneighs, OptBuf<int32_t, OVT > & optbuf, int32_t * & indacc, IVT * & numacc, 
-			   int32_t * & sendindbuf, OVT * & sendnumbuf, int * & sdispls, int * sendcnt, int accnz, bool indexisvalue, PreAllocatedSPA<IU,OVT> & SPA)
+			   int32_t * & sendindbuf, OVT * & sendnumbuf, int * & sdispls, int * sendcnt, int accnz, bool indexisvalue, PreAllocatedSPA<OVT> & SPA)
 {
     if(optbuf.totmax > 0)	// graph500 optimization enabled
 	{ 
@@ -1079,54 +1175,10 @@ void LocalSpMV(const SpParMat<IU,NUM,UDER> & A, int rowneighs, OptBuf<int32_t, O
 		}
 		else
 		{
-
-#ifdef THREADED
-            // multithreaded SpMV without splitting the matrix
-            // skipping the intermadiate layer of Friends.h
-            int32_t* indy;
-            OVT*  numy;
-            int nnzy;
-            SpMXSpV_Threaded_2D<SR>(*(A.spSeq->GetInternal()), (int32_t) A.getnrow(), indacc, numacc, accnz, indy, numy, nnzy, SPA);
-            DeleteAll(indacc, numacc);
-            
-            if(rowneighs==1) // shared memory version, simply steal memory from indy and numy
-            {
-                sendindbuf = indy;
-                sendnumbuf = numy;
-                sendcnt[0] = nnzy;
-                sdispls = new int[rowneighs]();
-                partial_sum(sendcnt, sendcnt+rowneighs-1, sdispls+1);
-                return;
-            }
-            else // TODO: parallelize this
-            {
-                sendindbuf = new int32_t[nnzy];
-                sendnumbuf = new OVT[nnzy];
-                int32_t perproc = A.getlocalrows() / rowneighs;
-                
-                int k = 0;	// index to buffer
-                for(int i=0; i<rowneighs; ++i)
-                {
-                    int32_t end_this = (i==rowneighs-1) ? A.getlocalrows(): (i+1)*perproc;
-                    while(k < nnzy && indy[k] < end_this)
-                    {
-                        sendindbuf[k] = indy[k] - i*perproc;
-                        sendnumbuf[k] = numy[k];
-                        ++sendcnt[i];
-                        ++k;
-                    }
-                }
-                DeleteAll(indy, numy);
-                sdispls = new int[rowneighs]();
-                partial_sum(sendcnt, sendcnt+rowneighs-1, sdispls+1);
-            }
-            
-
-#else
-            // serial SpMV
+            // default SpMSpV
             vector< int32_t > indy;
             vector< OVT >  numy;
-            generic_gespmv<SR>(*(A.spSeq), indacc, numacc, accnz, indy, numy);	// actual multiplication
+            generic_gespmv<SR>(*(A.spSeq), indacc, numacc, accnz, indy, numy, SPA);	
             
             DeleteAll(indacc, numacc);
             
@@ -1150,7 +1202,7 @@ void LocalSpMV(const SpParMat<IU,NUM,UDER> & A, int rowneighs, OptBuf<int32_t, O
             sdispls = new int[rowneighs]();
             partial_sum(sendcnt, sendcnt+rowneighs-1, sdispls+1);
             
-#endif
+//#endif
 
 		}
 	}
@@ -1158,98 +1210,6 @@ void LocalSpMV(const SpParMat<IU,NUM,UDER> & A, int rowneighs, OptBuf<int32_t, O
 }
 
 
-// old MergeContributions is replaced by the function below
-/*
-template <typename SR, typename IU, typename OVT>
-void MergeContributions(FullyDistSpVec<IU,OVT> & y, int * & recvcnt, int * & rdispls, int32_t * & recvindbuf, OVT * & recvnumbuf, int rowneighs)
-{
-    // free memory of y, in case it was aliased
-    vector<IU>().swap(y.ind);
-    vector<OVT>().swap(y.num);
-    
-#ifndef HEAPMERGE
-    IU ysize = y.MyLocLength();	// my local length is only O(n/p)
-    bool * isthere = new bool[ysize];
-    vector< pair<IU,OVT> > ts_pairs;
-    fill_n(isthere, ysize, false);
-    
-    // We don't need to keep a "merger" because minimum will always come from the processor
-    // with the smallest rank; so a linear sweep over the received buffer is enough
-    for(int i=0; i<rowneighs; ++i)
-    {
-        for(int j=0; j< recvcnt[i]; ++j)
-        {
-            int32_t index = recvindbuf[rdispls[i] + j];
-            if(!isthere[index])
-                ts_pairs.push_back(make_pair(index, recvnumbuf[rdispls[i] + j]));
-        }
-    }
-    DeleteAll(recvcnt, rdispls);
-    DeleteAll(isthere, recvindbuf, recvnumbuf);
-    sort(ts_pairs.begin(), ts_pairs.end());
-    int nnzy = ts_pairs.size();
-    y.ind.resize(nnzy);
-    y.num.resize(nnzy);
-    for(int i=0; i< nnzy; ++i)
-    {
-        y.ind[i] = ts_pairs[i].first;
-        y.num[i] = ts_pairs[i].second;
-    }
-#else
-    // Alternative 2: Heap-merge
-    int32_t hsize = 0;
-    int32_t inf = numeric_limits<int32_t>::min();
-    int32_t sup = numeric_limits<int32_t>::max();
-    KNHeap< int32_t, int32_t > sHeap(sup, inf);
-    int * processed = new int[rowneighs]();
-    for(int i=0; i<rowneighs; ++i)
-    {
-        if(recvcnt[i] > 0)
-        {
-            // key, proc_id
-            sHeap.insert(recvindbuf[rdispls[i]], i);
-            ++hsize;
-        }
-    }
-    int32_t key, locv;
-    if(hsize > 0)
-    {
-        sHeap.deleteMin(&key, &locv);
-        y.ind.push_back( static_cast<IU>(key));
-        y.num.push_back(recvnumbuf[rdispls[locv]]);	// nothing is processed yet
-        
-        if( (++(processed[locv])) < recvcnt[locv] )
-            sHeap.insert(recvindbuf[rdispls[locv]+processed[locv]], locv);
-        else
-            --hsize;
-    }
-    while(hsize > 0)
-    {
-        sHeap.deleteMin(&key, &locv);
-        IU deref = rdispls[locv] + processed[locv];
-        if(y.ind.back() == static_cast<IU>(key))	// y.ind is surely not empty
-        {
-            y.num.back() = SR::add(y.num.back(), recvnumbuf[deref]);
-            // ABAB: Benchmark actually allows us to be non-deterministic in terms of parent selection
-            // We can just skip this addition operator (if it's a max/min select)
-        } 
-        else
-        {
-            y.ind.push_back(static_cast<IU>(key));
-            y.num.push_back(recvnumbuf[deref]);
-        }
-        
-        if( (++(processed[locv])) < recvcnt[locv] )
-            sHeap.insert(recvindbuf[rdispls[locv]+processed[locv]], locv);
-        else
-            --hsize;
-    }
-    //DeleteAll(recvcnt, rdispls,processed);
-    //DeleteAll(recvindbuf, recvnumbuf);
-#endif	
-    
-}
-*/
 
 // non threaded
 template <typename SR, typename IU, typename OVT>
@@ -1422,7 +1382,7 @@ void MergeContributions_threaded(int * & listSizes, vector<int32_t *> & indsvec,
   */
 template <typename SR, typename IVT, typename OVT, typename IU, typename NUM, typename UDER>
 void SpMV (const SpParMat<IU,NUM,UDER> & A, const FullyDistSpVec<IU,IVT> & x, FullyDistSpVec<IU,OVT> & y, 
-			bool indexisvalue, OptBuf<int32_t, OVT > & optbuf, PreAllocatedSPA<IU,OVT> & SPA)
+			bool indexisvalue, OptBuf<int32_t, OVT > & optbuf, PreAllocatedSPA<OVT> & SPA)
 {
 	CheckSpMVCompliance(A,x);
 	optbuf.MarkEmpty();
@@ -1580,7 +1540,7 @@ void SpMV (const SpParMat<IU,NUM,UDER> & A, const FullyDistSpVec<IU,IVT> & x, Fu
 
 
 template <typename SR, typename IVT, typename OVT, typename IU, typename NUM, typename UDER>
-void SpMV (const SpParMat<IU,NUM,UDER> & A, const FullyDistSpVec<IU,IVT> & x, FullyDistSpVec<IU,OVT> & y, bool indexisvalue, PreAllocatedSPA<IU,OVT> & SPA)
+void SpMV (const SpParMat<IU,NUM,UDER> & A, const FullyDistSpVec<IU,IVT> & x, FullyDistSpVec<IU,OVT> & y, bool indexisvalue, PreAllocatedSPA<OVT> & SPA)
 {
 	OptBuf< int32_t, OVT > optbuf = OptBuf< int32_t,OVT >(); 
 	SpMV<SR>(A, x, y, indexisvalue, optbuf, SPA);
@@ -1590,14 +1550,14 @@ template <typename SR, typename IVT, typename OVT, typename IU, typename NUM, ty
 void SpMV (const SpParMat<IU,NUM,UDER> & A, const FullyDistSpVec<IU,IVT> & x, FullyDistSpVec<IU,OVT> & y, bool indexisvalue)
 {
     OptBuf< int32_t, OVT > optbuf = OptBuf< int32_t,OVT >();
-    PreAllocatedSPA<IU,OVT> SPA;
+    PreAllocatedSPA<OVT> SPA;
     SpMV<SR>(A, x, y, indexisvalue, optbuf, SPA);
 }
 
 template <typename SR, typename IVT, typename OVT, typename IU, typename NUM, typename UDER>
 void SpMV (const SpParMat<IU,NUM,UDER> & A, const FullyDistSpVec<IU,IVT> & x, FullyDistSpVec<IU,OVT> & y, bool indexisvalue, OptBuf<int32_t, OVT > & optbuf)
 {
-	PreAllocatedSPA<IU,OVT> SPA;
+	PreAllocatedSPA<OVT> SPA;
 	SpMV<SR>(A, x, y, indexisvalue, optbuf, SPA);
 }
 
@@ -1659,8 +1619,14 @@ FullyDistVec<IU,typename promote_trait<NUM,NUV>::T_promote>  SpMV
 	IU ysize = A.getlocalrows();
 	T_promote * localy = new T_promote[ysize];
 	fill_n(localy, ysize, id);		
+
+#ifdef THREADED
+	dcsc_gespmv_threaded<SR>(*(A.spSeq), numacc, localy);
+#else
 	dcsc_gespmv<SR>(*(A.spSeq), numacc, localy);	
+#endif
 	
+
 	DeleteAll(numacc,colsize, dpls);
 
 	// FullyDistVec<IT,NT>(shared_ptr<CommGrid> grid, IT globallen, NT initval, NT id)
@@ -2368,6 +2334,7 @@ FullyDistSpVec<IU,RET> EWiseApply
 					allowVNulls, allowWNulls, Vzero, Wzero, allowIntersect, true);
 }
 
+}
 
 
 #endif

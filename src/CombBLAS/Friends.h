@@ -41,7 +41,8 @@
 #include "Compare.h"
 #include "CombBLAS.h"
 #include "PreAllocatedSPA.h"
-using namespace std;
+
+namespace combblas {
 
 template <class IU, class NU>	
 class SpTuples;
@@ -57,6 +58,7 @@ class Dcsc;
 /****************************** MULTITHREADED LOGIC ALSO GOES HERE *******************************/
 /*************************************************************************************************/
 
+
 //! SpMV with dense vector
 template <typename SR, typename IU, typename NU, typename RHS, typename LHS>
 void dcsc_gespmv (const SpDCCols<IU, NU> & A, const RHS * x, LHS * y)
@@ -70,13 +72,61 @@ void dcsc_gespmv (const SpDCCols<IU, NU> & A, const RHS * x, LHS * y)
 			{
 				IU rowid = A.dcsc->ir[i];
 				SR::axpy(A.dcsc->numx[i], x[colid], y[rowid]);
-				if (SR::returnedSAID())
-				{
-					cout << "the semiring returned SAID but that is not implemented. results will be incorrect." << endl;
-					throw string("the semiring returned SAID but that is not implemented. results will be incorrect.");
-				}
 			}
 		}
+	}
+}
+
+//! SpMV with dense vector (multithreaded version)
+template <typename SR, typename IU, typename NU, typename RHS, typename LHS>
+void dcsc_gespmv_threaded (const SpDCCols<IU, NU> & A, const RHS * x, LHS * y)
+{
+	if(A.nnz > 0)
+	{	
+		int nthreads=1;
+		#ifdef _OPENMP
+		#pragma omp parallel
+		{
+                	nthreads = omp_get_num_threads();
+            	}
+		#endif          
+
+		IU nlocrows =  A.getnrow();
+		LHS ** tomerge = SpHelper::allocate2D<LHS>(nthreads, nlocrows);
+		auto id = SR::id();
+		
+		for(int i=0; i<nthreads; ++i)
+		{
+			fill_n(tomerge[i], nlocrows, id);		
+		}
+
+		#pragma omp parallel for
+		for(IU j =0; j<A.dcsc->nzc; ++j)	// for all nonzero columns
+		{
+			int curthread = 1;
+			#ifdef _OPENMP
+			curthread = omp_get_thread_num();
+			#endif
+			
+			LHS * loc2merge = tomerge[curthread];
+
+			IU colid = A.dcsc->jc[j];
+			for(IU i = A.dcsc->cp[j]; i< A.dcsc->cp[j+1]; ++i)
+			{
+				IU rowid = A.dcsc->ir[i];
+				SR::axpy(A.dcsc->numx[i], x[colid], loc2merge[rowid]);
+			}
+		}
+
+		#pragma omp parallel for
+		for(IU j=0; j < nlocrows; ++j)
+		{
+			for(int i=0; i< nthreads; ++i)
+			{
+				y[j] = SR::add(y[j], tomerge[i][j]);
+			}
+		}
+		SpHelper::deallocate2D(tomerge, nthreads);
 	}
 }
 
@@ -87,7 +137,7 @@ void dcsc_gespmv (const SpDCCols<IU, NU> & A, const RHS * x, LHS * y)
   */
 template <typename SR, typename IU, typename NUM, typename DER, typename IVT, typename OVT>
 int generic_gespmv_threaded (const SpMat<IU,NUM,DER> & A, const int32_t * indx, const IVT * numx, int32_t nnzx,
-		int32_t * & sendindbuf, OVT * & sendnumbuf, int * & sdispls, int p_c, PreAllocatedSPA<IU,OVT> & SPA)
+		int32_t * & sendindbuf, OVT * & sendnumbuf, int * & sdispls, int p_c, PreAllocatedSPA<OVT> & SPA)
 {
 	// FACTS: Split boundaries (for multithreaded execution) are independent of recipient boundaries
 	// Two splits might create output to the same recipient (needs to be merged)
@@ -349,7 +399,7 @@ void generic_gespmv_threaded_setbuffers (const SpMat<IU,NUM,DER> & A, const int3
 //! MIND: Matrix index type
 //! VIND: Vector index type (optimized: int32_t, general: int64_t)
 template <typename SR, typename MIND, typename VIND, typename DER, typename NUM, typename IVT, typename OVT>
-void generic_gespmv (const SpMat<MIND,NUM,DER> & A, const VIND * indx, const IVT * numx, VIND nnzx, vector<VIND> & indy, vector<OVT>  & numy)
+void generic_gespmv (const SpMat<MIND,NUM,DER> & A, const VIND * indx, const IVT * numx, VIND nnzx, vector<VIND> & indy, vector<OVT>  & numy, PreAllocatedSPA<OVT> & SPA)
 {
 	if(A.getnnz() > 0 && nnzx > 0)
 	{
@@ -359,7 +409,7 @@ void generic_gespmv (const SpMat<MIND,NUM,DER> & A, const VIND * indx, const IVT
 		}
 		else
 		{
-			SpMXSpV<SR>(*(A.GetInternal()), (VIND) A.getnrow(), indx, numx, nnzx, indy, numy);
+			SpMXSpV<SR>(*(A.GetInternal()), (VIND) A.getnrow(), indx, numx, nnzx, indy, numy, SPA);
 		}
 	}
 }
@@ -1180,5 +1230,7 @@ SpDCCols<IU,RETT> EWiseApply (const SpDCCols<IU,NU1> & A, const SpDCCols<IU,NU2>
 	return 	SpDCCols<IU, RETT> (A.m , A.n, tdcsc);
 }
 
+
+}
 
 #endif

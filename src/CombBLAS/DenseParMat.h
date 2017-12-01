@@ -1,11 +1,11 @@
 /****************************************************************/
 /* Parallel Combinatorial BLAS Library (for Graph Computations) */
-/* version 1.4 -------------------------------------------------*/
-/* date: 1/17/2014 ---------------------------------------------*/
-/* authors: Aydin Buluc (abuluc@lbl.gov), Adam Lugowski --------*/
+/* version 1.6 -------------------------------------------------*/
+/* date: 6/15/2017 ---------------------------------------------*/
+/* authors: Ariful Azad, Aydin Buluc  --------------------------*/
 /****************************************************************/
 /*
- Copyright (c) 2010-2014, The Regents of the University of California
+ Copyright (c) 2010-2017, The Regents of the University of California
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -40,11 +40,10 @@
 #include "MPIOp.h"
 #include "FullyDistVec.h"
 
+namespace combblas {
+
 template <class IU, class NU, class DER>
 class SpParMat;
-
-using namespace std;
-
 
 template <class IT, class NT>
 class DenseParMat
@@ -98,14 +97,14 @@ public:
 
 	shared_ptr<CommGrid> getcommgrid () { return commGrid; }
     
-    IT grows()
+   IT grows() const
     {
         IT glrows;
         MPI_Allreduce(&m, &glrows, 1, MPIType<IT>(), MPI_SUM, commGrid->GetColWorld());
         return glrows;
     }
     
-    IT gcols()
+    IT gcols() const
     {
         IT glcols;
         MPI_Allreduce(&n, &glcols, 1, MPIType<IT>(), MPI_SUM, commGrid->GetRowWorld());
@@ -121,6 +120,9 @@ private:
 	friend class SpParMat; 
 };
 
+}
+
 #include "DenseParMat.cpp"
+
 #endif
 

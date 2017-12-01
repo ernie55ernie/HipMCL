@@ -54,6 +54,7 @@
 #include "DistEdgeList.h"
 #include "CombBLAS.h"
 
+namespace combblas {
 
 /**
   * Fundamental 2D distributed sparse matrix class
@@ -283,6 +284,9 @@ public:
 	template <typename SR, typename NUO, typename UDERO, typename IU, typename NU1, typename NU2, typename UDER1, typename UDER2> 
 	friend SpParMat<IU,NUO,UDERO> 
 	Mult_AnXBn_Synch (SpParMat<IU,NU1,UDER1> & A, SpParMat<IU,NU2,UDER2> & B, bool clearA, bool clearB);
+    
+    template <typename IU, typename NU1, typename NU2, typename UDERA, typename UDERB>
+    friend IU EstPerProcessNnzSUMMA(SpParMat<IU,NU1,UDERA> & A, SpParMat<IU,NU2,UDERB> & B);
 
 	template <typename SR, typename IU, typename NU1, typename NU2, typename UDER1, typename UDER2> 
 	friend SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UDER1,UDER2>::T_promote> 
@@ -333,21 +337,38 @@ public:
 
 	template<typename SR, typename IVT, typename OVT, typename IU, typename NUM, typename UDER>
 	friend void LocalSpMV(const SpParMat<IU,NUM,UDER> & A, int rowneighs, OptBuf<int32_t, OVT > & optbuf, int32_t * & indacc, IVT * & numacc,
-                           int32_t * & sendindbuf, OVT * & sendnumbuf, int * & sdispls, int * sendcnt, int accnz, bool indexisvalue, PreAllocatedSPA<IU,OVT> & SPA);
+                           int32_t * & sendindbuf, OVT * & sendnumbuf, int * & sdispls, int * sendcnt, int accnz, bool indexisvalue, PreAllocatedSPA<OVT> & SPA);
 
 	template<typename VT, typename IU, typename UDER>
 	friend void LocalSpMV(const SpParMat<IU,bool,UDER> & A, int rowneighs, OptBuf<int32_t, VT > & optbuf, int32_t * & indacc, VT * & numacc, int * sendcnt, int accnz);
 
 private:
+	typedef array<char, MAXVERTNAME> STRASARRAY;
+	typedef pair< STRASARRAY, uint64_t> TYPE2SEND;
+
+	class CharArraySaveHandler
+	{
+		public:
+    		// no reader
+    		template <typename c, typename t>
+    		void save(std::basic_ostream<c,t>& os, STRASARRAY & chararray, int64_t index)
+    		{
+			auto locnull = find(chararray.begin(), chararray.end(), '\0'); // find the null character (or string::end)
+            		string strtmp(chararray.begin(), locnull); // range constructor 
+			os << strtmp;
+    		}
+	};
     
-    template <typename VT, typename GIT, typename _BinaryOperation, typename _UnaryOperation >
-    void Reduce(FullyDistVec<GIT,VT> & rvec, Dim dim, _BinaryOperation __binary_op, VT id, _UnaryOperation __unary_op, MPI_Op mympiop) const;
+	MPI_File TupleRead1stPassNExchange (const string & filename, TYPE2SEND * & senddata, IT & totsend, FullyDistVec<IT,STRASARRAY> & distmapper, uint64_t & totallength);
+
+	template <typename VT, typename GIT, typename _BinaryOperation, typename _UnaryOperation >
+    	void Reduce(FullyDistVec<GIT,VT> & rvec, Dim dim, _BinaryOperation __binary_op, VT id, _UnaryOperation __unary_op, MPI_Op mympiop) const;
     
-    template <typename _BinaryOperation, typename LIT>
+    	template <typename _BinaryOperation, typename LIT>
 	void SparseCommon(vector< vector < tuple<LIT,LIT,NT> > > & data, LIT locsize, IT total_m, IT total_n, _BinaryOperation BinOp);
 
-    template <typename VT, typename GIT>	// GIT: global index type of vector
-    void TopKGather(vector<NT> & all_medians, vector<IT> & nnz_per_col, int & thischunk, int & chunksize,
+    	template <typename VT, typename GIT>	// GIT: global index type of vector
+    	void TopKGather(vector<NT> & all_medians, vector<IT> & nnz_per_col, int & thischunk, int & chunksize,
                     const vector<NT> & medians, const vector<IT> & nnzperc, int itersuntil, vector< vector<NT> > & localmat,
                     const vector<IT> & actcolsmap, vector<IT> & klimits, vector<IT> & toretain, vector<vector<pair<IT,NT>>> & tmppair,
                     IT coffset, const FullyDistVec<GIT,VT> & rvec) const;
@@ -395,5 +416,10 @@ SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UD
 	return Mult_AnXBn_Synch<SR, N_promote, DER_promote> (A, B, clearA, clearB );
 }
 
+}
+
+
+
 #include "SpParMat.cpp"
+
 #endif
