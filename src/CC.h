@@ -91,7 +91,7 @@ FullyDistVec<IT,short> StarCheck(const SpParMat<IT,NT,DER> & A, FullyDistVec<IT,
     FullyDistVec<IT,short> star(A.getcommgrid(), A.getnrow(), 1);    // all initialized to true
     FullyDistVec<IT, IT> grandfather = father(father); // find grandparents
     
-  
+    
     
     grandfather.EWiseOut(father,
                          [](IT pv, IT gpv) -> short { return static_cast<short>(pv == gpv); },
@@ -99,16 +99,16 @@ FullyDistVec<IT,short> StarCheck(const SpParMat<IT,NT,DER> & A, FullyDistVec<IT,
     
     // nostars
     FullyDistSpVec<IT,short> nonstar = star.Find([](short isStar){return isStar==0;});
-      // grandfathers of nonstars
+    // grandfathers of nonstars
     FullyDistSpVec<IT, IT> nonstarGF = EWiseApply<IT>(nonstar, grandfather,
-                                            [](short isStar, IT gf){return gf;},
-                                            [](short isStar, IT gf){return true;},
-                                            false, static_cast<short>(0));
+                                                      [](short isStar, IT gf){return gf;},
+                                                      [](short isStar, IT gf){return true;},
+                                                      false, static_cast<short>(0));
     // grandfather pointing to a grandchild
     FullyDistSpVec<IT, IT> gfNonstar = nonstarGF.Invert(nonstarGF.TotalLength()); // for duplicates, keep the first one
     
     
-   
+    
     
     // star(GF) = 0
     star.EWiseApply(gfNonstar, [](short isStar, IT x){return static_cast<short>(0);},
@@ -141,37 +141,37 @@ void ConditionalHook(const SpParMat<IT,NT,DER> & A, FullyDistVec<IT, IT> & fathe
     FullyDistSpVec<IT, pair<IT, IT>> hooks(A.getcommgrid(), A.getnrow());
     // create entries belonging to stars
     hooks = EWiseApply<pair<IT, IT>>(hooks, stars,
-                                               [](pair<IT, IT> x, short isStar){return make_pair(0,0);},
-                                               [](pair<IT, IT> x, short isStar){return isStar==1;},
-                                               true, {0,0});
+                                     [](pair<IT, IT> x, short isStar){return make_pair(0,0);},
+                                     [](pair<IT, IT> x, short isStar){return isStar==1;},
+                                     true, {0,0});
     
     
     // include father information
     
     hooks = EWiseApply<pair<IT, IT>>(hooks, father,
-                                               [](pair<IT, IT> x, IT f){return make_pair(f,0);},
-                                               [](pair<IT, IT> x, IT f){return true;},
-                                               false, {0,0});
+                                     [](pair<IT, IT> x, IT f){return make_pair(f,0);},
+                                     [](pair<IT, IT> x, IT f){return true;},
+                                     false, {0,0});
     
     //keep entries with father>minNeighborFather and insert minNeighborFather information
     hooks = EWiseApply<pair<IT, IT>>(hooks,  minNeighborFather,
-                                               [](pair<IT, IT> x, IT mnf){return make_pair(get<0>(x), mnf);},
-                                               [](pair<IT, IT> x, IT mnf){return get<0>(x) > mnf;},
-                                               false, {0,0});
+                                     [](pair<IT, IT> x, IT mnf){return make_pair(get<0>(x), mnf);},
+                                     [](pair<IT, IT> x, IT mnf){return get<0>(x) > mnf;},
+                                     false, {0,0});
     //Invert
     FullyDistSpVec<IT, pair<IT, IT>> starhooks= hooks.Invert(hooks.TotalLength(),
-                                        [](pair<IT, IT> val, IT ind){return get<0>(val);},
-                                        [](pair<IT, IT> val, IT ind){return make_pair(ind, get<1>(val));},
-                                                [](pair<IT, IT> val1, pair<IT, IT> val2){return val2;} );
+                                                             [](pair<IT, IT> val, IT ind){return get<0>(val);},
+                                                             [](pair<IT, IT> val, IT ind){return make_pair(ind, get<1>(val));},
+                                                             [](pair<IT, IT> val1, pair<IT, IT> val2){return val2;} );
     // allowing the last vertex to pick the parent of the root of a star gives the correct output!!
     // [](pair<IT, IT> val1, pair<IT, IT> val2){return val1;} does not give the correct output. why?
     
     
     // drop the index informaiton
     FullyDistSpVec<IT, IT> finalhooks = EWiseApply<IT>(starhooks,  father,
-                                                                      [](pair<IT, IT> x, IT f){return get<1>(x);},
-                                                                      [](pair<IT, IT> x, IT f){return true;},
-                                                                      false, {0,0});
+                                                       [](pair<IT, IT> x, IT f){return get<1>(x);},
+                                                       [](pair<IT, IT> x, IT f){return true;},
+                                                       false, {0,0});
     father.Set(finalhooks);
 }
 
@@ -182,39 +182,39 @@ void UnconditionalHook(const SpParMat<IT,NT,DER> & A, FullyDistVec<IT, IT> & fat
     
     FullyDistVec<IT, IT> minNeighborFather ( A.getcommgrid());
     minNeighborFather = SpMV<Select2ndMinSR<NT, IT>>(A, father); // value is the minimum of all neighbors' fathers
-
+    
     FullyDistSpVec<IT, pair<IT, IT>> hooks(A.getcommgrid(), A.getnrow());
     // create entries belonging to stars
     hooks = EWiseApply<pair<IT, IT>>(hooks, stars,
-                                               [](pair<IT, IT> x, short isStar){return make_pair(0,0);},
-                                               [](pair<IT, IT> x, short isStar){return isStar==1;},
-                                               true, {0,0});
+                                     [](pair<IT, IT> x, short isStar){return make_pair(0,0);},
+                                     [](pair<IT, IT> x, short isStar){return isStar==1;},
+                                     true, {0,0});
     
     
     // include father information
     
     hooks = EWiseApply<pair<IT, IT>>(hooks, father,
-                                               [](pair<IT, IT> x, IT f){return make_pair(f,0);},
-                                               [](pair<IT, IT> x, IT f){return true;},
-                                               false, {0,0});
+                                     [](pair<IT, IT> x, IT f){return make_pair(f,0);},
+                                     [](pair<IT, IT> x, IT f){return true;},
+                                     false, {0,0});
     
     //keep entries with father!minNeighborFather and insert minNeighborFather information
     hooks = EWiseApply<pair<IT, IT>>(hooks,  minNeighborFather,
-                                               [](pair<IT, IT> x, IT mnf){return make_pair(get<0>(x), mnf);},
-                                               [](pair<IT, IT> x, IT mnf){return get<0>(x) != mnf;},
-                                               false, {0,0});
+                                     [](pair<IT, IT> x, IT mnf){return make_pair(get<0>(x), mnf);},
+                                     [](pair<IT, IT> x, IT mnf){return get<0>(x) != mnf;},
+                                     false, {0,0});
     //Invert
     FullyDistSpVec<IT, pair<IT, IT>> starhooks= hooks.Invert(hooks.TotalLength(),
-                                                                            [](pair<IT, IT> val, IT ind){return get<0>(val);},
-                                                                            [](pair<IT, IT> val, IT ind){return make_pair(ind, get<1>(val));},
-                                                                            [](pair<IT, IT> val1, pair<IT, IT> val2){return val1;} );
+                                                             [](pair<IT, IT> val, IT ind){return get<0>(val);},
+                                                             [](pair<IT, IT> val, IT ind){return make_pair(ind, get<1>(val));},
+                                                             [](pair<IT, IT> val1, pair<IT, IT> val2){return val1;} );
     
     
     // drop the index informaiton
     FullyDistSpVec<IT, IT> finalhooks = EWiseApply<IT>(starhooks,  father,
-                                                                      [](pair<IT, IT> x, IT f){return get<1>(x);},
-                                                                      [](pair<IT, IT> x, IT f){return true;},
-                                                                      false, {0,0});
+                                                       [](pair<IT, IT> x, IT f){return get<1>(x);},
+                                                       [](pair<IT, IT> x, IT f){return true;},
+                                                       false, {0,0});
     father.Set(finalhooks);
 }
 
@@ -239,9 +239,9 @@ void Correctness(const SpParMat<IT,NT,DER> & A, FullyDistVec<IT, IT> & cclabel, 
         //vtx1 \setminus vtx
         
         FullyDistSpVec<IT, IT> vtx2 = EWiseApply<IT>(vtx1, vtx,
-                                                           [](IT x, IT y){return x;},
-                                                           [](IT x, IT y){return true;},
-                                                           true, false, (IT)0, (IT)0, false);
+                                                     [](IT x, IT y){return x;},
+                                                     [](IT x, IT y){return true;},
+                                                     true, false, (IT)0, (IT)0, false);
         if(vtx2.getnnz()!=0)
         {
             cout << "Component " << i << " is not a propoer component\n";
@@ -301,8 +301,8 @@ FullyDistVec<IT, IT> CC(SpParMat<IT,NT,DER> & A, IT & nCC)
         outs<< endl;
         SpParHelper::Print(outs.str());
 #endif
-
-
+        
+        
         //father.DebugPrint();
     }while(nonstars>0);
     
@@ -318,7 +318,7 @@ FullyDistVec<IT, IT> CC(SpParMat<IT,NT,DER> & A, IT & nCC)
     FullyDistVec<IT,double> ColSums = A.Reduce(Column, plus<double>(), 0.0);
     FullyDistVec<IT, IT> nonisov = ColSums.FindInds(bind2nd(greater<double>(), 0));
     int64_t numIsolated = A.getnrow() - nonisov.TotalLength();
-                                              
+    
     
     FullyDistSpVec<IT, IT> cc1 = cc.Find([](IT label){return label==0;});
     FullyDistSpVec<IT, IT> cc2 = cc.Find([](IT label){return label==1;});
@@ -388,9 +388,8 @@ void HistCC(FullyDistVec<IT, IT> CC, IT nCC)
         output << endl;
         output.close();
     }
-
+    
     
     //ccSizes.PrintToFile("histCC.txt");
 }
-
 
