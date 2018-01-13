@@ -2,7 +2,7 @@
 
 #SBATCH -p debug
 #SBATCH -N 16
-#SBATCH -C knl,quad,flat # quad mode a single NUMA domain of the DRAM, flat means mcdRAM is used as memory.
+#SBATCH -C knl
 #SBATCH -t 00:30:00
 #SBATCH -J euk_cori_KNL_16node
 #SBATCH -o euk_cori_KNL_16node.o%j
@@ -19,4 +19,4 @@ n=16
 IN_FILE=../../data/vir_vs_vir_30_50length.indexed.triples
 OUT_FILE=../../data/vir_vs_vir_30_50length.indexed.triples.hipmcl
 
-srun -N $N -n $n -c 68  --ntasks-per-node=1 --cpu_bind=cores numactl -p 1 $HIPMCL_EXE -M $IN_FILE -I 2 -per-process-mem 112 -o $OUT_FILE
+srun -N $N -n $n -c 68  --ntasks-per-node=1 --cpu_bind=cores $HIPMCL_EXE -M $IN_FILE -I 2 -per-process-mem 96 -o $OUT_FILE
