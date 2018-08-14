@@ -1,11 +1,11 @@
 #!/bin/bash -l
 
-#SBATCH -p debug
+#SBATCH -q debug
 #SBATCH -N 16
 #SBATCH -C knl
 #SBATCH -t 00:30:00
-#SBATCH -J euk_cori_KNL_16node
-#SBATCH -o euk_cori_KNL_16node.o%j
+#SBATCH -J virus_cori_KNL_16node
+#SBATCH -o virus_cori_KNL_16node.o%j
 
 HIPMCL_EXE=../../bin/hipmcl
 export OMP_NUM_THREADS=68

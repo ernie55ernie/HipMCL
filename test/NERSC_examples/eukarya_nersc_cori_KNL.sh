@@ -1,6 +1,6 @@
 #!/bin/bash -l
 
-#SBATCH -p debug
+#SBATCH -q debug
 #SBATCH -N 16
 #SBATCH -C knl
 #SBATCH -t 00:30:00

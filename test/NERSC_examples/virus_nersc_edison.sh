@@ -1,6 +1,6 @@
 #!/bin/bash -l
 
-#SBATCH -p debug
+#SBATCH -q debug
 #SBATCH -N 16
 #SBATCH -t 00:20:00
 #SBATCH -J virus_edison_16node

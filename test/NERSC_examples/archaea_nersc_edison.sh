@@ -1,6 +1,6 @@
 #!/bin/bash -l
 
-#SBATCH -p debug
+#SBATCH -q debug
 #SBATCH -N 36
 #SBATCH -t 00:30:00
 #SBATCH -J archaea_edison_36node

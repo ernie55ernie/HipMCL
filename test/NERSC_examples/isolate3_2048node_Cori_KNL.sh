@@ -1,6 +1,6 @@
 #!/bin/bash -l
 
-#SBATCH -p regular
+#SBATCH -q regular
 #SBATCH -N 2048
 #SBATCH -C knl
 #SBATCH -t 10:00:00
