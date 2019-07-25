@@ -9,29 +9,34 @@ CRAYFLAGS = -DCOMBBLAS_BOOST -DCRAYCOMP -h msglevel_4
 FLAGS = $(GCCFLAGS) -std=c++11 -std=gnu++14 -DTHREADED -fopenmp #$(MCL_FLAGS) #-DCOMBBLAS_DEBUG -DKSELECTLIMIT=40
 MCL_FLAGS = -DSHOW_MEMORY_USAGE
 
+
 COMBBLAS = src/CombBLAS
+COMBBLAS_INC = $(COMBBLAS)/include/CombBLAS
+COMBBLAS_SRC = $(COMBBLAS)/src
+INCADD = -I$(COMBBLAS)/include/ -I$(COMBBLAS)/psort-1.0/include/ -I$(COMBBLAS)/usort/include/ -I$(COMBBLAS)/graph500-1.2/generator/include/
+
 BIN = bin
 SRC = src
 
 all: hipmcl 
 
-$(COMBBLAS)/CommGrid.o:	$(COMBBLAS)/CommGrid.cpp $(COMBBLAS)/CommGrid.h
-	$(COMPILER)  $(FLAGS) -c -o $(COMBBLAS)/CommGrid.o $(COMBBLAS)/CommGrid.cpp 
 
-$(COMBBLAS)/mmio.o: $(COMBBLAS)/mmio.c
-	cc $(FLAGS) -c -o $(COMBBLAS)/mmio.o $(COMBBLAS)/mmio.c
+$(COMBBLAS)/CommGrid.o:	$(COMBBLAS_SRC)/CommGrid.cpp $(COMBBLAS_INC)/CommGrid.h
+	$(COMPILER)  $(INCADD) $(FLAGS) -c -o $(COMBBLAS)/CommGrid.o $(COMBBLAS_SRC)/CommGrid.cpp 
+$(COMBBLAS)/mmio.o: $(COMBBLAS_SRC)/mmio.c
+	mpicc $(INCADD) $(FLAGS) -c -o $(COMBBLAS)/mmio.o $(COMBBLAS_SRC)/mmio.c
 
-$(COMBBLAS)/MPIType.o:	$(COMBBLAS)/MPIType.cpp $(COMBBLAS)/MPIType.h
-	$(COMPILER) $(FLAGS) -c -o $(COMBBLAS)/MPIType.o $(COMBBLAS)/MPIType.cpp
+$(COMBBLAS)/MPIType.o:	$(COMBBLAS_SRC)/MPIType.cpp $(COMBBLAS_INC)/MPIType.h
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o $(COMBBLAS)/MPIType.o $(COMBBLAS_SRC)/MPIType.cpp 
 
-$(COMBBLAS)/hash.o:	$(COMBBLAS)/hash.cpp $(COMBBLAS)/hash.hpp
-	$(COMPILER) $(FLAGS) -c -o $(COMBBLAS)/hash.o $(COMBBLAS)/hash.cpp
+$(COMBBLAS)/hash.o:	$(COMBBLAS_SRC)/hash.cpp $(COMBBLAS_INC)/hash.hpp
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o $(COMBBLAS)/hash.o $(COMBBLAS_SRC)/hash.cpp
 
-$(SRC)/HipMCL.o:  $(SRC)/HipMCL.cpp $(SRC)/CC.h $(SRC)/WriteMCLClusters.h $(COMBBLAS)/SpParMat.h $(COMBBLAS)/ParFriends.h $(COMBBLAS)/SpParMat.cpp
-	$(COMPILER) $(FLAGS) -c -o $(SRC)/HipMCL.o $(SRC)/HipMCL.cpp 
-
+$(SRC)/HipMCL.o:  $(SRC)/HipMCL.cpp $(SRC)/CC.h $(SRC)/WriteMCLClusters.h 
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o $(SRC)/HipMCL.o $(SRC)/HipMCL.cpp 
 hipmcl:	$(SRC)/HipMCL.o  $(COMBBLAS)/CommGrid.o $(COMBBLAS)/MPIType.o $(COMBBLAS)/mmio.o $(COMBBLAS)/hash.o
-	$(COMPILER) $(FLAGS)  -o $(BIN)/hipmcl $(SRC)/HipMCL.o $(COMBBLAS)/mmio.o $(COMBBLAS)/CommGrid.o $(COMBBLAS)/MPIType.o $(COMBBLAS)/hash.o
+	$(COMPILER) $(INCADD) $(FLAGS)  -o $(BIN)/hipmcl $(SRC)/HipMCL.o $(COMBBLAS)/mmio.o $(COMBBLAS)/CommGrid.o $(COMBBLAS)/MPIType.o $(COMBBLAS)/hash.o
+
 
 
 clean:

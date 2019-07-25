@@ -54,25 +54,24 @@ using namespace combblas;
 
 #define EPS 0.0001
 
+
 double mcl_Abcasttime;
 double mcl_Bbcasttime;
 double mcl_localspgemmtime;
 double mcl_multiwaymergetime;
 double mcl_kselecttime;
 double mcl_prunecolumntime;
-double cblas_allgathertime;	// for compilation (TODO: fix this dependency)
+// for compilation (TODO: fix this dependency)
+int cblas_splits;
+double cblas_alltoalltime;
+double cblas_allgathertime;
+double cblas_localspmvtime;
+double cblas_mergeconttime;
+double cblas_transvectime;
+
 int64_t mcl_memory;
 double tIO;
 
-
-
-class Dist
-{
-    public:
-    typedef SpDCCols < int64_t, double > DCCols;
-    typedef SpParMat < int64_t, double, DCCols > MPI_DCCols;
-    typedef FullyDistVec < int64_t, double> MPI_DenseVec;
-};
 
 
 typedef struct
@@ -101,6 +100,8 @@ typedef struct
     //HipMCL optimization
     int phases;
     int perProcessMem;
+    bool isDoublePrecision; // true: double, false: float
+    bool is64bInt; // true: int64_t for local indexing, false: int32_t (for local indexing)
     
     //debugging
     bool show;
@@ -136,6 +137,8 @@ void InitParam(HipMCLParam & param)
     //HipMCL optimization
     param.phases = 1;
     param.perProcessMem = 0;
+    param.isDoublePrecision = true;
+    param.is64bInt = true;
     
     //debugging
     param.show = false;
@@ -183,11 +186,15 @@ void ShowParam(HipMCLParam & param)
     
     
     
-    runinfo << "HiMCL optimization" << endl;
+    runinfo << "HipMCL optimization" << endl;
     runinfo << "    Number of phases: " << param.phases << endl;
     runinfo << "    Memory avilable per process: ";
     if(param.perProcessMem>0) runinfo << param.perProcessMem << "GB" << endl;
     else runinfo << "not provided" << endl;
+    if(param.isDoublePrecision) runinfo << "Using double precision floating point" << endl;
+    else runinfo << "Using single precision floating point" << endl;
+    if(param.is64bInt ) runinfo << "Using 64 bit local indexing" << endl;
+    else runinfo << "Using 32 bit local indexing" << endl;
     
     runinfo << "Debugging" << endl;
     runinfo << "    Show matrices after major steps? : ";
@@ -251,6 +258,12 @@ void ProcessParam(int argc, char* argv[], HipMCLParam & param)
         else if (strcmp(argv[i],"-per-process-mem")==0) {
             param.perProcessMem = atoi(argv[i + 1]);
         }
+        else if (strcmp(argv[i],"--single-precision")==0) {
+            param.isDoublePrecision = false;
+        }
+        else if (strcmp(argv[i],"--32bit-local-index")==0) {
+            param.is64bInt = false;
+        }
     }
     
     if(param.ofilename=="") // construct output file name if it is not provided
@@ -296,7 +309,9 @@ void ShowOptions()
     
     runinfo << "HipMCL optimization" << endl;
     runinfo << "    -phases <number of phases> (default:1)\n";
-    runinfo << "    -per-process-mem <memory (GB) available per process> (default:0, number of phases is not estimated)\n" << endl;
+    runinfo << "    -per-process-mem <memory (GB) available per process> (default:0, number of phases is not estimated)\n";
+    runinfo << "    --single-precision (if not provided, use double precision floating point numbers)\n" << endl;
+    runinfo << "    --32bit-local-index (if not provided, use 64 bit indexing for vertex ids)\n" << endl;
     
     runinfo << "Debugging" << endl;
     runinfo << "    --show: show information about matrices after major steps (default: do not show matrices)" << endl;
@@ -317,42 +332,49 @@ void ShowOptions()
 
 // base: base of items
 // clusters are always numbered 0-based
-FullyDistVec<int64_t, int64_t> Interpret(Dist::MPI_DCCols & A)
+template <typename IT, typename NT, typename DER>
+FullyDistVec<IT, IT> Interpret(SpParMat<IT,NT,DER> & A)
 {
-    int64_t nCC;
+    IT nCC;
     // A is a directed graph
-    // Since we need weekly connected components, we symmetricize A
-    Dist::MPI_DCCols AT = A;
+    // symmetricize A
+    
+    SpParMat<IT,NT,DER> AT = A;
     AT.Transpose();
     A += AT;
-    FullyDistVec<int64_t, int64_t> cclabels = CC(A, nCC);
+    SpParHelper::Print("Finding connected components....\n");
+    
+    FullyDistVec<IT, IT> cclabels = CC(A, nCC);
     return cclabels;
 }
 
-void MakeColStochastic(Dist::MPI_DCCols & A)
+
+template <typename IT, typename NT, typename DER>
+void MakeColStochastic(SpParMat<IT,NT,DER> & A)
 {
-    Dist::MPI_DenseVec colsums = A.Reduce(Column, plus<double>(), 0.0);
-    colsums.Apply(safemultinv<double>());
-    A.DimApply(Column, colsums, multiplies<double>());	// scale each "Column" with the given vector
+    FullyDistVec<IT, NT> colsums = A.Reduce(Column, plus<NT>(), 0.0);
+    colsums.Apply(safemultinv<NT>());
+    A.DimApply(Column, colsums, multiplies<NT>());	// scale each "Column" with the given vector
 }
 
-double Chaos(Dist::MPI_DCCols & A)
+template <typename IT, typename NT, typename DER>
+NT Chaos(SpParMat<IT,NT,DER> & A)
 {
     // sums of squares of columns
-    Dist::MPI_DenseVec colssqs = A.Reduce(Column, plus<double>(), 0.0, bind2nd(exponentiate(), 2));
+    FullyDistVec<IT, NT> colssqs = A.Reduce(Column, plus<NT>(), 0.0, bind2nd(exponentiate(), 2));
     // Matrix entries are non-negative, so max() can use zero as identity
-    Dist::MPI_DenseVec colmaxs = A.Reduce(Column, maximum<double>(), 0.0);
+    FullyDistVec<IT, NT> colmaxs = A.Reduce(Column, maximum<NT>(), 0.0);
     colmaxs -= colssqs;
     
     // multiplu by number of nonzeros in each column
-    Dist::MPI_DenseVec nnzPerColumn = A.Reduce(Column, plus<double>(), 0.0, [](double val){return 1.0;});
-    colmaxs.EWiseApply(nnzPerColumn, multiplies<double>());
+    FullyDistVec<IT, NT> nnzPerColumn = A.Reduce(Column, plus<NT>(), 0.0, [](NT val){return 1.0;});
+    colmaxs.EWiseApply(nnzPerColumn, multiplies<NT>());
     
-    return colmaxs.Reduce(maximum<double>(), 0.0);
+    return colmaxs.Reduce(maximum<NT>(), 0.0);
 }
 
-
-void Inflate(Dist::MPI_DCCols & A, double power)
+template <typename IT, typename NT, typename DER>
+void Inflate(SpParMat<IT,NT,DER> & A, double power)
 {
     A.Apply(bind2nd(exponentiate(), power));
 }
@@ -360,24 +382,26 @@ void Inflate(Dist::MPI_DCCols & A, double power)
 // default adjustloop setting
 // 1. Remove loops
 // 2. set loops to max of all arc weights
-void AdjustLoops(Dist::MPI_DCCols & A)
+template <typename IT, typename NT, typename DER>
+void AdjustLoops(SpParMat<IT,NT,DER> & A)
 {
 
     A.RemoveLoops();
-    Dist::MPI_DenseVec colmaxs = A.Reduce(Column, maximum<double>(), numeric_limits<double>::min());
-    A.Apply([](double val){return val==numeric_limits<double>::min() ? 1.0 : val;}); // for isolated vertices
+    FullyDistVec<IT, NT> colmaxs = A.Reduce(Column, maximum<NT>(), numeric_limits<NT>::min());
+    A.Apply([](NT val){return val==numeric_limits<NT>::min() ? 1.0 : val;}); // for isolated vertices
     A.AddLoops(colmaxs);
     ostringstream outs;
     outs << "Adjusting loops" << endl;
     SpParHelper::Print(outs.str());
 }
 
-void RemoveIsolated(Dist::MPI_DCCols & A, HipMCLParam & param)
+template <typename IT, typename NT, typename DER>
+void RemoveIsolated(SpParMat<IT,NT,DER> & A, HipMCLParam & param)
 {
     ostringstream outs;
-    FullyDistVec<int64_t,double> ColSums = A.Reduce(Column, plus<double>(), 0.0);
-    FullyDistVec<int64_t, int64_t> nonisov = ColSums.FindInds(bind2nd(greater<double>(), 0));
-    int64_t numIsolated = A.getnrow() - nonisov.TotalLength();
+    FullyDistVec<IT, NT> ColSums = A.Reduce(Column, plus<NT>(), 0.0);
+    FullyDistVec<IT, IT> nonisov = ColSums.FindInds(bind2nd(greater<NT>(), 0));
+    IT numIsolated = A.getnrow() - nonisov.TotalLength();
     outs << "Number of isolated vertices: " << numIsolated << endl;
     SpParHelper::Print(outs.str());
     
@@ -391,12 +415,13 @@ void RemoveIsolated(Dist::MPI_DCCols & A, HipMCLParam & param)
 }
 
 //TODO: handle reordered cluster ids
-void RandPermute(Dist::MPI_DCCols & A, HipMCLParam & param)
+template <typename IT, typename NT, typename DER>
+void RandPermute(SpParMat<IT,NT,DER> & A, HipMCLParam & param)
 {
     // randomly permute for load balance
     if(A.getnrow() == A.getncol())
     {
-        FullyDistVec<int64_t, int64_t> p( A.getcommgrid());
+        FullyDistVec<IT, IT> p( A.getcommgrid());
         p.iota(A.getnrow(), 0);
         p.RandPerm();
         (A)(p,p,true);// in-place permute to save memory
@@ -408,7 +433,8 @@ void RandPermute(Dist::MPI_DCCols & A, HipMCLParam & param)
     }
 }
 
-FullyDistVec<int64_t, int64_t> HipMCL(Dist::MPI_DCCols & A, HipMCLParam & param)
+template <typename IT, typename NT, typename DER>
+FullyDistVec<IT, IT> HipMCL(SpParMat<IT,NT,DER> & A, HipMCLParam & param)
 {
     if(param.remove_isolated)
         RemoveIsolated(A, param);
@@ -422,6 +448,16 @@ FullyDistVec<int64_t, int64_t> HipMCL(Dist::MPI_DCCols & A, HipMCLParam & param)
     // Make stochastic
     MakeColStochastic(A);
     SpParHelper::Print("Made stochastic\n");
+    
+    
+    IT nnz = A.getnnz();
+    IT nv = A.getnrow();
+    IT avgDegree = nnz/nv;
+    if(avgDegree > std::max(param.select, param.recover_num))
+    {
+        SpParHelper::Print("Average degree of the input graph is greater than max{S,R}.\nApplying the prune/select/recovery logic before the first iteration\n\n");
+        MCLPruneRecoverySelect(A, (NT)param.prunelimit, (IT)param.select, (IT)param.recover_num, (NT)param.recover_pct, param.kselectVersion);
+    }
 
     if(param.show)
     {
@@ -431,17 +467,17 @@ FullyDistVec<int64_t, int64_t> HipMCL(Dist::MPI_DCCols & A, HipMCLParam & param)
 
     // chaos doesn't make sense for non-stochastic matrices
     // it is in the range {0,1} for stochastic matrices
-    double chaos = 1;
+    NT chaos = 1;
     int it=1;
     double tInflate = 0;
     double tExpand = 0;
-     typedef PlusTimesSRing<double, double> PTFF;
+     typedef PlusTimesSRing<NT, NT> PTFF;
     // while there is an epsilon improvement
     while( chaos > EPS)
     {
         double t1 = MPI_Wtime();
         //A.Square<PTFF>() ;		// expand
-        A = MemEfficientSpGEMM<PTFF, double, Dist::DCCols>(A, A, param.phases, param.prunelimit,param.select, param.recover_num, param.recover_pct, param.kselectVersion, param.perProcessMem);
+        A = MemEfficientSpGEMM<PTFF, NT, DER>(A, A, param.phases, param.prunelimit, (IT)param.select, (IT)param.recover_num, param.recover_pct, param.kselectVersion, param.perProcessMem);
         
         MakeColStochastic(A);
         tExpand += (MPI_Wtime() - t1);
@@ -469,7 +505,7 @@ FullyDistVec<int64_t, int64_t> HipMCL(Dist::MPI_DCCols & A, HipMCLParam & param)
         double newbalance = A.LoadImbalance();
         double t3=MPI_Wtime();
         stringstream s;
-        s << "Iteration# "  << setw(3) << it << " : "  << " chaos: " << setprecision(3) << chaos << " #edges: " << A.getnnz() << "  load-balance: "<< newbalance << " Time: " << (t3-t1) << endl;
+        s << "Iteration# "  << setw(3) << it << " : "  << " chaos: " << setprecision(3) << chaos << "  load-balance: "<< newbalance << " Time: " << (t3-t1) << endl;
         SpParHelper::Print(s.str());
         it++;
         
@@ -478,12 +514,20 @@ FullyDistVec<int64_t, int64_t> HipMCL(Dist::MPI_DCCols & A, HipMCLParam & param)
     }
     
     
+#ifdef TIMING    
     double tcc1 = MPI_Wtime();
-    FullyDistVec<int64_t, int64_t> cclabels = Interpret(A);
-    double tcc = MPI_Wtime() - tcc1;
+#endif
+    
+    // bool can not be used because
+    // bool does not work in A.AddLoops(1) used in LACC: can not create a fullydist vector with Bool
+    // SpParMat<IT,NT,DER> A does not work because int64_t and float promote trait not defined
+    // hence, we are forcing this with IT and double
+    SpParMat<IT,double, SpDCCols < IT, double >> ADouble = A;
+    FullyDistVec<IT, IT> cclabels = Interpret(ADouble);
     
     
 #ifdef TIMING
+    double tcc = MPI_Wtime() - tcc1;    
     int myrank;
     MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
     if(myrank==0)
@@ -511,10 +555,10 @@ FullyDistVec<int64_t, int64_t> HipMCL(Dist::MPI_DCCols & A, HipMCLParam & param)
 
 }
 
-
-void Symmetricize(Dist::MPI_DCCols & A)
+template <typename IT, typename NT, typename DER>
+void Symmetricize(SpParMat<IT,NT,DER> & A)
 {
-    Dist::MPI_DCCols AT = A;
+    SpParMat<IT,NT,DER> AT = A;
     AT.Transpose();
     if(!(AT == A))
     {
@@ -522,6 +566,85 @@ void Symmetricize(Dist::MPI_DCCols & A)
         A += AT;
     }
 }
+
+template <typename GIT, typename LIT, typename NT>
+void MainBody(HipMCLParam & param)
+{
+    SpParMat<GIT,NT, SpDCCols < LIT, NT >> A(MPI_COMM_WORLD);    // construct object
+    FullyDistVec<GIT, array<char, MAXVERTNAME> > vtxLabels(A.getcommgrid());
+    
+    // read file
+    
+    SpParHelper::Print("Reading input file......\n");
+    
+    double tIO1 = MPI_Wtime();
+    if(param.isInputMM)
+        A.ParallelReadMM(param.ifilename, param.base, maximum<NT>());    // if base=0, then it is implicitly converted to Boolean false
+    else // default labeled triples format
+        vtxLabels = A.ReadGeneralizedTuples(param.ifilename,  maximum<NT>());
+    
+    tIO = MPI_Wtime() - tIO1;
+    ostringstream outs;
+    outs << " : took " << tIO << " seconds" << endl;
+    SpParHelper::Print(outs.str());
+    // Symmetricize the matrix only if needed
+    Symmetricize(A);
+    
+    double balance = A.LoadImbalance();
+    
+    outs.str("");
+    outs.clear();
+    
+    GIT nnz = A.getnnz();
+    GIT nv = A.getnrow();
+    outs << "Number of vertices: " << nv << " number of edges: "<< nnz << endl;
+    
+    outs << "Load balance: " << balance << endl;
+    SpParHelper::Print(outs.str());
+    
+    if(param.show)
+    {
+        A.PrintInfo();
+    }
+    
+    
+    
+#ifdef TIMING
+    mcl_Abcasttime = 0;
+    mcl_Bbcasttime = 0;
+    mcl_localspgemmtime = 0;
+    mcl_multiwaymergetime = 0;
+    mcl_kselecttime = 0;
+    mcl_prunecolumntime = 0;
+#endif
+    
+    
+    
+    double tstart = MPI_Wtime();
+    
+    // Run HipMCL
+    FullyDistVec<GIT, GIT> culstLabels = HipMCL(A, param);
+    //culstLabels.ParallelWrite(param.ofilename, param.base); // clusters are always numbered 0-based
+    
+    if(param.isInputMM)
+        WriteMCLClusters(param.ofilename, culstLabels, param.base);
+    else
+        WriteMCLClusters(param.ofilename, culstLabels, vtxLabels);
+    
+    
+    
+    GIT nclusters = culstLabels.Reduce(maximum<GIT>(), (GIT) 0 ) ;
+    nclusters ++; // because of zero based indexing for clusters
+    
+    double tend = MPI_Wtime();
+    stringstream s2;
+    s2 << "Number of clusters: " << nclusters << endl;
+    s2 << "Total time: " << (tend-tstart) << endl;
+    s2 <<  "=================================================\n" << endl ;
+    SpParHelper::Print(s2.str());
+    
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -572,89 +695,26 @@ int main(int argc, char* argv[])
     // show parameters used to run HipMCL
     ShowParam(param);
     
-     if(param.perProcessMem==0)
-     {
-
-         if(myrank == 0)
-         {
-             cout << "******** Number of phases will not be estimated as -per-process-mem option is supplied. It is highly recommended that you provide -per-process-mem option for large-scale runs. *********** " << endl;
-         }
-     }
-    
+    if(param.perProcessMem==0)
+    {
+        if(myrank == 0)
+        {
+            cout << "******** Number of phases will not be estimated as -per-process-mem option is not supplied. It is highly recommended that you provide -per-process-mem option for large-scale runs. *********** " << endl;
+        }
+    }
     
     {
-        
-        
-        Dist::MPI_DCCols A(MPI_COMM_WORLD);	// construct object
-        FullyDistVec<int64_t, array<char, MAXVERTNAME> > vtxLabels(A.getcommgrid());
-        
-        // read file
-  
-        
-        SpParHelper::Print("Reading input file......\n");
-    
-        double tIO1 = MPI_Wtime();
-        if(param.isInputMM)
-            A.ParallelReadMM(param.ifilename, param.base, maximum<double>());	// if base=0, then it is implicitly converted to Boolean false
-        else // default labeled triples format
-            vtxLabels = A.ReadGeneralizedTuples(param.ifilename,  maximum<double>());
-
-        tIO = MPI_Wtime() - tIO1;
-        ostringstream outs;
-        outs << " : took " << tIO << " seconds" << endl;
-        SpParHelper::Print(outs.str());
-        // Symmetricize the matrix only if needed
-        Symmetricize(A);
-        
-        double balance = A.LoadImbalance();
-        int64_t nnz = A.getnnz();
-        int64_t nv = A.getnrow();
-        outs.str("");
-        outs.clear();
-        outs << "Number of vertices: " << nv << " number of edges: "<< nnz << endl;
-        outs << "Load balance: " << balance << endl;
-        SpParHelper::Print(outs.str());
-        
-        if(param.show)
+        if(param.isDoublePrecision)
         {
-            A.PrintInfo();
+            if(param.is64bInt) // default case
+                MainBody<int64_t, int64_t, double>(param);
+            else
+                MainBody<int64_t, int32_t, double>(param);
         }
-        
-        
-        
-#ifdef TIMING
-        mcl_Abcasttime = 0;
-        mcl_Bbcasttime = 0;
-        mcl_localspgemmtime = 0;
-        mcl_multiwaymergetime = 0;
-        mcl_kselecttime = 0;
-        mcl_prunecolumntime = 0;
-#endif
-        
-        
-        
-        double tstart = MPI_Wtime();
-        
-        // Run HipMCL
-        FullyDistVec<int64_t, int64_t> culstLabels = HipMCL(A, param);
-        //culstLabels.ParallelWrite(param.ofilename, param.base); // clusters are always numbered 0-based
-        
-        if(param.isInputMM)
-            WriteMCLClusters(param.ofilename, culstLabels, param.base);
+        else if(param.is64bInt)
+            MainBody<int64_t, int64_t, float>(param);
         else
-            WriteMCLClusters(param.ofilename, culstLabels, vtxLabels);
-        
-       
-        
-        int64_t nclusters = culstLabels.Reduce(maximum<int64_t>(), (int64_t) 0 ) ;
-        nclusters ++; // because of zero based indexing for clusters
-        
-        double tend = MPI_Wtime();
-        stringstream s2;
-        s2 << "Number of clusters: " << nclusters << endl;
-        s2 << "Total time: " << (tend-tstart) << endl;
-        s2 <<  "=================================================\n" << endl ;
-        SpParHelper::Print(s2.str());
+            MainBody<int64_t, int32_t, float>(param);
     }
     
     
