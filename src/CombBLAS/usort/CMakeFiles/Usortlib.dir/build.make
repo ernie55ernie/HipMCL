@@ -46,10 +46,10 @@ RM = /usr/local/Cellar/cmake/3.9.1/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/azad-admin/Documents/Projects/hipmcl
+CMAKE_SOURCE_DIR = /Users/azad-admin/Documents/hipmcl
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/azad-admin/Documents/Projects/hipmcl
+CMAKE_BINARY_DIR = /Users/azad-admin/Documents/hipmcl
 
 # Include any dependencies generated for this target.
 include src/CombBLAS/usort/CMakeFiles/Usortlib.dir/depend.make
@@ -62,16 +62,16 @@ include src/CombBLAS/usort/CMakeFiles/Usortlib.dir/flags.make
 
 src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/parUtils.o: src/CombBLAS/usort/CMakeFiles/Usortlib.dir/flags.make
 src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/parUtils.o: src/CombBLAS/usort/src/parUtils.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/azad-admin/Documents/Projects/hipmcl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/parUtils.o"
-	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/usort && /usr/local/bin/mpicxx  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/Usortlib.dir/src/parUtils.o -c /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/usort/src/parUtils.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/azad-admin/Documents/hipmcl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/parUtils.o"
+	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/usort && /usr/local/bin/mpicxx  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/Usortlib.dir/src/parUtils.o -c /Users/azad-admin/Documents/hipmcl/src/CombBLAS/usort/src/parUtils.cpp
 
 src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/parUtils.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Usortlib.dir/src/parUtils.i"
-	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/usort && /usr/local/bin/mpicxx $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/usort/src/parUtils.cpp > CMakeFiles/Usortlib.dir/src/parUtils.i
+	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/usort && /usr/local/bin/mpicxx $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/azad-admin/Documents/hipmcl/src/CombBLAS/usort/src/parUtils.cpp > CMakeFiles/Usortlib.dir/src/parUtils.i
 
 src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/parUtils.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Usortlib.dir/src/parUtils.s"
-	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/usort && /usr/local/bin/mpicxx $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/usort/src/parUtils.cpp -o CMakeFiles/Usortlib.dir/src/parUtils.s
+	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/usort && /usr/local/bin/mpicxx $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/azad-admin/Documents/hipmcl/src/CombBLAS/usort/src/parUtils.cpp -o CMakeFiles/Usortlib.dir/src/parUtils.s
 
 src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/parUtils.o.requires:
 
@@ -86,16 +86,16 @@ src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/parUtils.o.provides.build: src/Co
 
 src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/binUtils.o: src/CombBLAS/usort/CMakeFiles/Usortlib.dir/flags.make
 src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/binUtils.o: src/CombBLAS/usort/src/binUtils.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/azad-admin/Documents/Projects/hipmcl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/binUtils.o"
-	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/usort && /usr/local/bin/mpicxx  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/Usortlib.dir/src/binUtils.o -c /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/usort/src/binUtils.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/azad-admin/Documents/hipmcl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/binUtils.o"
+	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/usort && /usr/local/bin/mpicxx  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/Usortlib.dir/src/binUtils.o -c /Users/azad-admin/Documents/hipmcl/src/CombBLAS/usort/src/binUtils.cpp
 
 src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/binUtils.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Usortlib.dir/src/binUtils.i"
-	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/usort && /usr/local/bin/mpicxx $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/usort/src/binUtils.cpp > CMakeFiles/Usortlib.dir/src/binUtils.i
+	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/usort && /usr/local/bin/mpicxx $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/azad-admin/Documents/hipmcl/src/CombBLAS/usort/src/binUtils.cpp > CMakeFiles/Usortlib.dir/src/binUtils.i
 
 src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/binUtils.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Usortlib.dir/src/binUtils.s"
-	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/usort && /usr/local/bin/mpicxx $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/usort/src/binUtils.cpp -o CMakeFiles/Usortlib.dir/src/binUtils.s
+	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/usort && /usr/local/bin/mpicxx $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/azad-admin/Documents/hipmcl/src/CombBLAS/usort/src/binUtils.cpp -o CMakeFiles/Usortlib.dir/src/binUtils.s
 
 src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/binUtils.o.requires:
 
@@ -120,9 +120,9 @@ src/CombBLAS/usort/libUsortlib.a: src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src
 src/CombBLAS/usort/libUsortlib.a: src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/binUtils.o
 src/CombBLAS/usort/libUsortlib.a: src/CombBLAS/usort/CMakeFiles/Usortlib.dir/build.make
 src/CombBLAS/usort/libUsortlib.a: src/CombBLAS/usort/CMakeFiles/Usortlib.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/azad-admin/Documents/Projects/hipmcl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX static library libUsortlib.a"
-	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/usort && $(CMAKE_COMMAND) -P CMakeFiles/Usortlib.dir/cmake_clean_target.cmake
-	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/usort && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/Usortlib.dir/link.txt --verbose=$(VERBOSE)
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/azad-admin/Documents/hipmcl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX static library libUsortlib.a"
+	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/usort && $(CMAKE_COMMAND) -P CMakeFiles/Usortlib.dir/cmake_clean_target.cmake
+	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/usort && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/Usortlib.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
 src/CombBLAS/usort/CMakeFiles/Usortlib.dir/build: src/CombBLAS/usort/libUsortlib.a
@@ -135,10 +135,10 @@ src/CombBLAS/usort/CMakeFiles/Usortlib.dir/requires: src/CombBLAS/usort/CMakeFil
 .PHONY : src/CombBLAS/usort/CMakeFiles/Usortlib.dir/requires
 
 src/CombBLAS/usort/CMakeFiles/Usortlib.dir/clean:
-	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/usort && $(CMAKE_COMMAND) -P CMakeFiles/Usortlib.dir/cmake_clean.cmake
+	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/usort && $(CMAKE_COMMAND) -P CMakeFiles/Usortlib.dir/cmake_clean.cmake
 .PHONY : src/CombBLAS/usort/CMakeFiles/Usortlib.dir/clean
 
 src/CombBLAS/usort/CMakeFiles/Usortlib.dir/depend:
-	cd /Users/azad-admin/Documents/Projects/hipmcl && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/azad-admin/Documents/Projects/hipmcl /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/usort /Users/azad-admin/Documents/Projects/hipmcl /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/usort /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/usort/CMakeFiles/Usortlib.dir/DependInfo.cmake --color=$(COLOR)
+	cd /Users/azad-admin/Documents/hipmcl && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/azad-admin/Documents/hipmcl /Users/azad-admin/Documents/hipmcl/src/CombBLAS/usort /Users/azad-admin/Documents/hipmcl /Users/azad-admin/Documents/hipmcl/src/CombBLAS/usort /Users/azad-admin/Documents/hipmcl/src/CombBLAS/usort/CMakeFiles/Usortlib.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : src/CombBLAS/usort/CMakeFiles/Usortlib.dir/depend
 

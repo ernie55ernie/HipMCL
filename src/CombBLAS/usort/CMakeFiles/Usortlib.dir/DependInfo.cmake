@@ -4,8 +4,8 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/usort/src/binUtils.cpp" "/Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/binUtils.o"
-  "/Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/usort/src/parUtils.cpp" "/Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/parUtils.o"
+  "/Users/azad-admin/Documents/hipmcl/src/CombBLAS/usort/src/binUtils.cpp" "/Users/azad-admin/Documents/hipmcl/src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/binUtils.o"
+  "/Users/azad-admin/Documents/hipmcl/src/CombBLAS/usort/src/parUtils.cpp" "/Users/azad-admin/Documents/hipmcl/src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/parUtils.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 
