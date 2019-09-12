@@ -6,5 +6,5 @@ CXX_FLAGS = -std=c++11 -std=c++14 -fopenmp -DNDEBUG -w -DGRAPH_GENERATOR_SEQ -O2
 
 CXX_DEFINES = -DTHREADED -DTIMING
 
-CXX_INCLUDES = -I/Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/usort -I/Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/usort/include -I/Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/usort/include/usort 
+CXX_INCLUDES = -I/Users/azad-admin/Documents/hipmcl/src/CombBLAS/usort -I/Users/azad-admin/Documents/hipmcl/src/CombBLAS/usort/include -I/Users/azad-admin/Documents/hipmcl/src/CombBLAS/usort/include/usort 
 
