@@ -51,10 +51,10 @@ RM = /usr/local/Cellar/cmake/3.9.1/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/azad-admin/Documents/hipmcl
+CMAKE_SOURCE_DIR = /Users/azad-admin/Documents/Projects/hipmcl
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/azad-admin/Documents/hipmcl
+CMAKE_BINARY_DIR = /Users/azad-admin/Documents/Projects/hipmcl
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -140,14 +140,14 @@ list_install_components/fast: list_install_components
 
 # The main all target
 all: cmake_check_build_system
-	cd /Users/azad-admin/Documents/hipmcl && $(CMAKE_COMMAND) -E cmake_progress_start /Users/azad-admin/Documents/hipmcl/CMakeFiles /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/CMakeFiles/progress.marks
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f CMakeFiles/Makefile2 src/CombBLAS/graph500-1.2/generator/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/azad-admin/Documents/hipmcl/CMakeFiles 0
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(CMAKE_COMMAND) -E cmake_progress_start /Users/azad-admin/Documents/Projects/hipmcl/CMakeFiles /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/CMakeFiles/progress.marks
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f CMakeFiles/Makefile2 src/CombBLAS/graph500-1.2/generator/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/azad-admin/Documents/Projects/hipmcl/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f CMakeFiles/Makefile2 src/CombBLAS/graph500-1.2/generator/clean
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f CMakeFiles/Makefile2 src/CombBLAS/graph500-1.2/generator/clean
 .PHONY : clean
 
 # The main clean target
@@ -157,22 +157,22 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f CMakeFiles/Makefile2 src/CombBLAS/graph500-1.2/generator/preinstall
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f CMakeFiles/Makefile2 src/CombBLAS/graph500-1.2/generator/preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f CMakeFiles/Makefile2 src/CombBLAS/graph500-1.2/generator/preinstall
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f CMakeFiles/Makefile2 src/CombBLAS/graph500-1.2/generator/preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	cd /Users/azad-admin/Documents/hipmcl && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
 # Convenience name for target.
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/rule:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f CMakeFiles/Makefile2 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/rule
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f CMakeFiles/Makefile2 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/rule
 .PHONY : src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/rule
 
 # Convenience name for target.
@@ -182,127 +182,127 @@ GraphGenlib: src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/rule
 
 # fast build rule for target.
 GraphGenlib/fast:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build
 .PHONY : GraphGenlib/fast
 
 # target to build an object file
 btrd_binomial_distribution.o:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/btrd_binomial_distribution.o
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/btrd_binomial_distribution.o
 .PHONY : btrd_binomial_distribution.o
 
 # target to preprocess a source file
 btrd_binomial_distribution.i:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/btrd_binomial_distribution.i
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/btrd_binomial_distribution.i
 .PHONY : btrd_binomial_distribution.i
 
 # target to generate assembly for a file
 btrd_binomial_distribution.s:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/btrd_binomial_distribution.s
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/btrd_binomial_distribution.s
 .PHONY : btrd_binomial_distribution.s
 
 # target to build an object file
 graph_generator.o:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/graph_generator.o
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/graph_generator.o
 .PHONY : graph_generator.o
 
 # target to preprocess a source file
 graph_generator.i:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/graph_generator.i
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/graph_generator.i
 .PHONY : graph_generator.i
 
 # target to generate assembly for a file
 graph_generator.s:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/graph_generator.s
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/graph_generator.s
 .PHONY : graph_generator.s
 
 # target to build an object file
 make_graph.o:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/make_graph.o
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/make_graph.o
 .PHONY : make_graph.o
 
 # target to preprocess a source file
 make_graph.i:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/make_graph.i
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/make_graph.i
 .PHONY : make_graph.i
 
 # target to generate assembly for a file
 make_graph.s:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/make_graph.s
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/make_graph.s
 .PHONY : make_graph.s
 
 # target to build an object file
 mrg_transitions.o:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/mrg_transitions.o
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/mrg_transitions.o
 .PHONY : mrg_transitions.o
 
 # target to preprocess a source file
 mrg_transitions.i:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/mrg_transitions.i
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/mrg_transitions.i
 .PHONY : mrg_transitions.i
 
 # target to generate assembly for a file
 mrg_transitions.s:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/mrg_transitions.s
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/mrg_transitions.s
 .PHONY : mrg_transitions.s
 
 # target to build an object file
 permutation_gen.o:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/permutation_gen.o
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/permutation_gen.o
 .PHONY : permutation_gen.o
 
 # target to preprocess a source file
 permutation_gen.i:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/permutation_gen.i
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/permutation_gen.i
 .PHONY : permutation_gen.i
 
 # target to generate assembly for a file
 permutation_gen.s:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/permutation_gen.s
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/permutation_gen.s
 .PHONY : permutation_gen.s
 
 # target to build an object file
 scramble_edges.o:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/scramble_edges.o
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/scramble_edges.o
 .PHONY : scramble_edges.o
 
 # target to preprocess a source file
 scramble_edges.i:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/scramble_edges.i
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/scramble_edges.i
 .PHONY : scramble_edges.i
 
 # target to generate assembly for a file
 scramble_edges.s:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/scramble_edges.s
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/scramble_edges.s
 .PHONY : scramble_edges.s
 
 # target to build an object file
 splittable_mrg.o:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/splittable_mrg.o
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/splittable_mrg.o
 .PHONY : splittable_mrg.o
 
 # target to preprocess a source file
 splittable_mrg.i:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/splittable_mrg.i
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/splittable_mrg.i
 .PHONY : splittable_mrg.i
 
 # target to generate assembly for a file
 splittable_mrg.s:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/splittable_mrg.s
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/splittable_mrg.s
 .PHONY : splittable_mrg.s
 
 # target to build an object file
 utils.o:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/utils.o
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/utils.o
 .PHONY : utils.o
 
 # target to preprocess a source file
 utils.i:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/utils.i
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/utils.i
 .PHONY : utils.i
 
 # target to generate assembly for a file
 utils.s:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/utils.s
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/utils.s
 .PHONY : utils.s
 
 # Help Target
@@ -354,6 +354,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	cd /Users/azad-admin/Documents/hipmcl && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 

@@ -46,10 +46,10 @@ RM = /usr/local/Cellar/cmake/3.9.1/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/azad-admin/Documents/hipmcl
+CMAKE_SOURCE_DIR = /Users/azad-admin/Documents/Projects/hipmcl
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/azad-admin/Documents/hipmcl
+CMAKE_BINARY_DIR = /Users/azad-admin/Documents/Projects/hipmcl
 
 # Include any dependencies generated for this target.
 include src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/depend.make
@@ -62,16 +62,16 @@ include src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/flags.mak
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/btrd_binomial_distribution.o: src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/flags.make
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/btrd_binomial_distribution.o: src/CombBLAS/graph500-1.2/generator/btrd_binomial_distribution.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/azad-admin/Documents/hipmcl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/btrd_binomial_distribution.o"
-	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/GraphGenlib.dir/btrd_binomial_distribution.o   -c /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/btrd_binomial_distribution.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/azad-admin/Documents/Projects/hipmcl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/btrd_binomial_distribution.o"
+	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/GraphGenlib.dir/btrd_binomial_distribution.o   -c /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/btrd_binomial_distribution.c
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/btrd_binomial_distribution.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/GraphGenlib.dir/btrd_binomial_distribution.i"
-	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/btrd_binomial_distribution.c > CMakeFiles/GraphGenlib.dir/btrd_binomial_distribution.i
+	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/btrd_binomial_distribution.c > CMakeFiles/GraphGenlib.dir/btrd_binomial_distribution.i
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/btrd_binomial_distribution.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/GraphGenlib.dir/btrd_binomial_distribution.s"
-	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/btrd_binomial_distribution.c -o CMakeFiles/GraphGenlib.dir/btrd_binomial_distribution.s
+	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/btrd_binomial_distribution.c -o CMakeFiles/GraphGenlib.dir/btrd_binomial_distribution.s
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/btrd_binomial_distribution.o.requires:
 
@@ -86,16 +86,16 @@ src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/btrd_binomial_dis
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/splittable_mrg.o: src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/flags.make
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/splittable_mrg.o: src/CombBLAS/graph500-1.2/generator/splittable_mrg.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/azad-admin/Documents/hipmcl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/splittable_mrg.o"
-	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/GraphGenlib.dir/splittable_mrg.o   -c /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/splittable_mrg.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/azad-admin/Documents/Projects/hipmcl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/splittable_mrg.o"
+	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/GraphGenlib.dir/splittable_mrg.o   -c /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/splittable_mrg.c
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/splittable_mrg.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/GraphGenlib.dir/splittable_mrg.i"
-	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/splittable_mrg.c > CMakeFiles/GraphGenlib.dir/splittable_mrg.i
+	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/splittable_mrg.c > CMakeFiles/GraphGenlib.dir/splittable_mrg.i
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/splittable_mrg.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/GraphGenlib.dir/splittable_mrg.s"
-	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/splittable_mrg.c -o CMakeFiles/GraphGenlib.dir/splittable_mrg.s
+	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/splittable_mrg.c -o CMakeFiles/GraphGenlib.dir/splittable_mrg.s
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/splittable_mrg.o.requires:
 
@@ -110,16 +110,16 @@ src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/splittable_mrg.o.
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/mrg_transitions.o: src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/flags.make
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/mrg_transitions.o: src/CombBLAS/graph500-1.2/generator/mrg_transitions.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/azad-admin/Documents/hipmcl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/mrg_transitions.o"
-	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/GraphGenlib.dir/mrg_transitions.o   -c /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/mrg_transitions.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/azad-admin/Documents/Projects/hipmcl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/mrg_transitions.o"
+	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/GraphGenlib.dir/mrg_transitions.o   -c /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/mrg_transitions.c
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/mrg_transitions.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/GraphGenlib.dir/mrg_transitions.i"
-	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/mrg_transitions.c > CMakeFiles/GraphGenlib.dir/mrg_transitions.i
+	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/mrg_transitions.c > CMakeFiles/GraphGenlib.dir/mrg_transitions.i
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/mrg_transitions.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/GraphGenlib.dir/mrg_transitions.s"
-	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/mrg_transitions.c -o CMakeFiles/GraphGenlib.dir/mrg_transitions.s
+	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/mrg_transitions.c -o CMakeFiles/GraphGenlib.dir/mrg_transitions.s
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/mrg_transitions.o.requires:
 
@@ -134,16 +134,16 @@ src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/mrg_transitions.o
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/graph_generator.o: src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/flags.make
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/graph_generator.o: src/CombBLAS/graph500-1.2/generator/graph_generator.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/azad-admin/Documents/hipmcl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building C object src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/graph_generator.o"
-	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/GraphGenlib.dir/graph_generator.o   -c /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/graph_generator.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/azad-admin/Documents/Projects/hipmcl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building C object src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/graph_generator.o"
+	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/GraphGenlib.dir/graph_generator.o   -c /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/graph_generator.c
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/graph_generator.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/GraphGenlib.dir/graph_generator.i"
-	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/graph_generator.c > CMakeFiles/GraphGenlib.dir/graph_generator.i
+	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/graph_generator.c > CMakeFiles/GraphGenlib.dir/graph_generator.i
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/graph_generator.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/GraphGenlib.dir/graph_generator.s"
-	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/graph_generator.c -o CMakeFiles/GraphGenlib.dir/graph_generator.s
+	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/graph_generator.c -o CMakeFiles/GraphGenlib.dir/graph_generator.s
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/graph_generator.o.requires:
 
@@ -158,16 +158,16 @@ src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/graph_generator.o
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/permutation_gen.o: src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/flags.make
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/permutation_gen.o: src/CombBLAS/graph500-1.2/generator/permutation_gen.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/azad-admin/Documents/hipmcl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building C object src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/permutation_gen.o"
-	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/GraphGenlib.dir/permutation_gen.o   -c /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/permutation_gen.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/azad-admin/Documents/Projects/hipmcl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building C object src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/permutation_gen.o"
+	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/GraphGenlib.dir/permutation_gen.o   -c /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/permutation_gen.c
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/permutation_gen.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/GraphGenlib.dir/permutation_gen.i"
-	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/permutation_gen.c > CMakeFiles/GraphGenlib.dir/permutation_gen.i
+	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/permutation_gen.c > CMakeFiles/GraphGenlib.dir/permutation_gen.i
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/permutation_gen.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/GraphGenlib.dir/permutation_gen.s"
-	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/permutation_gen.c -o CMakeFiles/GraphGenlib.dir/permutation_gen.s
+	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/permutation_gen.c -o CMakeFiles/GraphGenlib.dir/permutation_gen.s
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/permutation_gen.o.requires:
 
@@ -182,16 +182,16 @@ src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/permutation_gen.o
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/make_graph.o: src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/flags.make
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/make_graph.o: src/CombBLAS/graph500-1.2/generator/make_graph.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/azad-admin/Documents/hipmcl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building C object src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/make_graph.o"
-	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/GraphGenlib.dir/make_graph.o   -c /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/make_graph.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/azad-admin/Documents/Projects/hipmcl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building C object src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/make_graph.o"
+	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/GraphGenlib.dir/make_graph.o   -c /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/make_graph.c
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/make_graph.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/GraphGenlib.dir/make_graph.i"
-	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/make_graph.c > CMakeFiles/GraphGenlib.dir/make_graph.i
+	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/make_graph.c > CMakeFiles/GraphGenlib.dir/make_graph.i
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/make_graph.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/GraphGenlib.dir/make_graph.s"
-	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/make_graph.c -o CMakeFiles/GraphGenlib.dir/make_graph.s
+	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/make_graph.c -o CMakeFiles/GraphGenlib.dir/make_graph.s
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/make_graph.o.requires:
 
@@ -206,16 +206,16 @@ src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/make_graph.o.prov
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/utils.o: src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/flags.make
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/utils.o: src/CombBLAS/graph500-1.2/generator/utils.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/azad-admin/Documents/hipmcl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building C object src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/utils.o"
-	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/GraphGenlib.dir/utils.o   -c /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/utils.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/azad-admin/Documents/Projects/hipmcl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building C object src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/utils.o"
+	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/GraphGenlib.dir/utils.o   -c /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/utils.c
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/utils.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/GraphGenlib.dir/utils.i"
-	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/utils.c > CMakeFiles/GraphGenlib.dir/utils.i
+	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/utils.c > CMakeFiles/GraphGenlib.dir/utils.i
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/utils.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/GraphGenlib.dir/utils.s"
-	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/utils.c -o CMakeFiles/GraphGenlib.dir/utils.s
+	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/utils.c -o CMakeFiles/GraphGenlib.dir/utils.s
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/utils.o.requires:
 
@@ -230,16 +230,16 @@ src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/utils.o.provides.
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/scramble_edges.o: src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/flags.make
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/scramble_edges.o: src/CombBLAS/graph500-1.2/generator/scramble_edges.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/azad-admin/Documents/hipmcl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building C object src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/scramble_edges.o"
-	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/GraphGenlib.dir/scramble_edges.o   -c /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/scramble_edges.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/azad-admin/Documents/Projects/hipmcl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building C object src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/scramble_edges.o"
+	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/GraphGenlib.dir/scramble_edges.o   -c /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/scramble_edges.c
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/scramble_edges.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/GraphGenlib.dir/scramble_edges.i"
-	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/scramble_edges.c > CMakeFiles/GraphGenlib.dir/scramble_edges.i
+	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/scramble_edges.c > CMakeFiles/GraphGenlib.dir/scramble_edges.i
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/scramble_edges.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/GraphGenlib.dir/scramble_edges.s"
-	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/scramble_edges.c -o CMakeFiles/GraphGenlib.dir/scramble_edges.s
+	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator && /usr/local/bin/mpicc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/scramble_edges.c -o CMakeFiles/GraphGenlib.dir/scramble_edges.s
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/scramble_edges.o.requires:
 
@@ -276,9 +276,9 @@ src/CombBLAS/graph500-1.2/generator/libGraphGenlib.a: src/CombBLAS/graph500-1.2/
 src/CombBLAS/graph500-1.2/generator/libGraphGenlib.a: src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/scramble_edges.o
 src/CombBLAS/graph500-1.2/generator/libGraphGenlib.a: src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build.make
 src/CombBLAS/graph500-1.2/generator/libGraphGenlib.a: src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/azad-admin/Documents/hipmcl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Linking C static library libGraphGenlib.a"
-	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator && $(CMAKE_COMMAND) -P CMakeFiles/GraphGenlib.dir/cmake_clean_target.cmake
-	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/GraphGenlib.dir/link.txt --verbose=$(VERBOSE)
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/azad-admin/Documents/Projects/hipmcl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Linking C static library libGraphGenlib.a"
+	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator && $(CMAKE_COMMAND) -P CMakeFiles/GraphGenlib.dir/cmake_clean_target.cmake
+	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/GraphGenlib.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/build: src/CombBLAS/graph500-1.2/generator/libGraphGenlib.a
@@ -297,10 +297,10 @@ src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/requires: src/Com
 .PHONY : src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/requires
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/clean:
-	cd /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator && $(CMAKE_COMMAND) -P CMakeFiles/GraphGenlib.dir/cmake_clean.cmake
+	cd /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator && $(CMAKE_COMMAND) -P CMakeFiles/GraphGenlib.dir/cmake_clean.cmake
 .PHONY : src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/clean
 
 src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/depend:
-	cd /Users/azad-admin/Documents/hipmcl && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/azad-admin/Documents/hipmcl /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator /Users/azad-admin/Documents/hipmcl /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator /Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/DependInfo.cmake --color=$(COLOR)
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/azad-admin/Documents/Projects/hipmcl /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator /Users/azad-admin/Documents/Projects/hipmcl /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : src/CombBLAS/graph500-1.2/generator/CMakeFiles/GraphGenlib.dir/depend
 

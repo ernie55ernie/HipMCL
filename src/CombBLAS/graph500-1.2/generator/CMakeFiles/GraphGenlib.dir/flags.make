@@ -6,5 +6,5 @@ C_FLAGS = -DNDEBUG -Drestrict=__restrict__ -w -DGRAPH_GENERATOR_SEQ -O2 -DMPICH_
 
 C_DEFINES = -DTHREADED -DTIMING
 
-C_INCLUDES = -I/Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator -I/Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/include -I/Users/azad-admin/Documents/hipmcl/src/CombBLAS/graph500-1.2/generator/include/graph500/generator 
+C_INCLUDES = -I/Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator -I/Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/include -I/Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/graph500-1.2/generator/include/graph500/generator 
 

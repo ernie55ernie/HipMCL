@@ -51,10 +51,10 @@ RM = /usr/local/Cellar/cmake/3.9.1/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/azad-admin/Documents/hipmcl
+CMAKE_SOURCE_DIR = /Users/azad-admin/Documents/Projects/hipmcl
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/azad-admin/Documents/hipmcl
+CMAKE_BINARY_DIR = /Users/azad-admin/Documents/Projects/hipmcl
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -140,14 +140,14 @@ list_install_components/fast: list_install_components
 
 # The main all target
 all: cmake_check_build_system
-	cd /Users/azad-admin/Documents/hipmcl && $(CMAKE_COMMAND) -E cmake_progress_start /Users/azad-admin/Documents/hipmcl/CMakeFiles /Users/azad-admin/Documents/hipmcl/src/CombBLAS/usort/CMakeFiles/progress.marks
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f CMakeFiles/Makefile2 src/CombBLAS/usort/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/azad-admin/Documents/hipmcl/CMakeFiles 0
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(CMAKE_COMMAND) -E cmake_progress_start /Users/azad-admin/Documents/Projects/hipmcl/CMakeFiles /Users/azad-admin/Documents/Projects/hipmcl/src/CombBLAS/usort/CMakeFiles/progress.marks
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f CMakeFiles/Makefile2 src/CombBLAS/usort/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/azad-admin/Documents/Projects/hipmcl/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f CMakeFiles/Makefile2 src/CombBLAS/usort/clean
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f CMakeFiles/Makefile2 src/CombBLAS/usort/clean
 .PHONY : clean
 
 # The main clean target
@@ -157,22 +157,22 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f CMakeFiles/Makefile2 src/CombBLAS/usort/preinstall
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f CMakeFiles/Makefile2 src/CombBLAS/usort/preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f CMakeFiles/Makefile2 src/CombBLAS/usort/preinstall
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f CMakeFiles/Makefile2 src/CombBLAS/usort/preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	cd /Users/azad-admin/Documents/hipmcl && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
 # Convenience name for target.
 src/CombBLAS/usort/CMakeFiles/Usortlib.dir/rule:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f CMakeFiles/Makefile2 src/CombBLAS/usort/CMakeFiles/Usortlib.dir/rule
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f CMakeFiles/Makefile2 src/CombBLAS/usort/CMakeFiles/Usortlib.dir/rule
 .PHONY : src/CombBLAS/usort/CMakeFiles/Usortlib.dir/rule
 
 # Convenience name for target.
@@ -182,37 +182,37 @@ Usortlib: src/CombBLAS/usort/CMakeFiles/Usortlib.dir/rule
 
 # fast build rule for target.
 Usortlib/fast:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/usort/CMakeFiles/Usortlib.dir/build.make src/CombBLAS/usort/CMakeFiles/Usortlib.dir/build
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/usort/CMakeFiles/Usortlib.dir/build.make src/CombBLAS/usort/CMakeFiles/Usortlib.dir/build
 .PHONY : Usortlib/fast
 
 # target to build an object file
 src/binUtils.o:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/usort/CMakeFiles/Usortlib.dir/build.make src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/binUtils.o
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/usort/CMakeFiles/Usortlib.dir/build.make src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/binUtils.o
 .PHONY : src/binUtils.o
 
 # target to preprocess a source file
 src/binUtils.i:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/usort/CMakeFiles/Usortlib.dir/build.make src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/binUtils.i
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/usort/CMakeFiles/Usortlib.dir/build.make src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/binUtils.i
 .PHONY : src/binUtils.i
 
 # target to generate assembly for a file
 src/binUtils.s:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/usort/CMakeFiles/Usortlib.dir/build.make src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/binUtils.s
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/usort/CMakeFiles/Usortlib.dir/build.make src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/binUtils.s
 .PHONY : src/binUtils.s
 
 # target to build an object file
 src/parUtils.o:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/usort/CMakeFiles/Usortlib.dir/build.make src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/parUtils.o
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/usort/CMakeFiles/Usortlib.dir/build.make src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/parUtils.o
 .PHONY : src/parUtils.o
 
 # target to preprocess a source file
 src/parUtils.i:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/usort/CMakeFiles/Usortlib.dir/build.make src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/parUtils.i
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/usort/CMakeFiles/Usortlib.dir/build.make src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/parUtils.i
 .PHONY : src/parUtils.i
 
 # target to generate assembly for a file
 src/parUtils.s:
-	cd /Users/azad-admin/Documents/hipmcl && $(MAKE) -f src/CombBLAS/usort/CMakeFiles/Usortlib.dir/build.make src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/parUtils.s
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(MAKE) -f src/CombBLAS/usort/CMakeFiles/Usortlib.dir/build.make src/CombBLAS/usort/CMakeFiles/Usortlib.dir/src/parUtils.s
 .PHONY : src/parUtils.s
 
 # Help Target
@@ -246,6 +246,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	cd /Users/azad-admin/Documents/hipmcl && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	cd /Users/azad-admin/Documents/Projects/hipmcl && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 
