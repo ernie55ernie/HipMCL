@@ -5,8 +5,8 @@ COMBBLAS_DIR=~/Documents/Projects/combinatorial-blas-2.0/CombBLAS
 HIPMCL_DIR=~/Documents/Projects/HipMCL/src
 
 #copy necessary files from CombBLAS
-cp -r $COMBBLAS_DIR/include $HIPMCL_DIR/CombBLAS/include
-cp -r $COMBBLAS_DIR/src $HIPMCL_DIR/CombBLAS/src
+cp -r $COMBBLAS_DIR/include $HIPMCL_DIR/CombBLAS/
+cp -r $COMBBLAS_DIR/src $HIPMCL_DIR/CombBLAS/
 cp -r $COMBBLAS_DIR/graph500-1.2 $HIPMCL_DIR/CombBLAS/
 cp -r $COMBBLAS_DIR/ms_inttypes $HIPMCL_DIR/CombBLAS/
 cp -r $COMBBLAS_DIR/psort-1.0 $HIPMCL_DIR/CombBLAS/

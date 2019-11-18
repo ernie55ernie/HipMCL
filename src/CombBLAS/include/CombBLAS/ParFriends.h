@@ -647,8 +647,11 @@ SpParMat<IU,NUO,UDERO> Mult_AnXBn_DoubleBuff
 	(A.spSeq)->Split( *A1seq, *A2seq); 
 	const_cast< UDERB* >(B.spSeq)->Transpose();
 	(B.spSeq)->Split( *B1seq, *B2seq);
-	MPI_Barrier(GridC->GetWorld());
-
+    
+    	// Transpose back for the column-by-column algorithm
+    	const_cast< UDERB* >(B1seq)->Transpose();
+    	const_cast< UDERB* >(B2seq)->Transpose();
+    
 	LIA ** ARecvSizes = SpHelper::allocate2D<LIA>(UDERA::esscount, stages);
 	LIB ** BRecvSizes = SpHelper::allocate2D<LIB>(UDERB::esscount, stages);
 
@@ -696,12 +699,23 @@ SpParMat<IU,NUO,UDERO> Mult_AnXBn_DoubleBuff
 		}
 		SpParHelper::BCastMatrix(GridC->GetColWorld(), *BRecv, ess, i);	// then, receive its elements
 		
-		
+		// before activating this remove transposing B1seq
+        	/*
 		SpTuples<LIC,NUO> * C_cont = MultiplyReturnTuples<SR, NUO>
 						(*ARecv, *BRecv, // parameters themselves
 						false, true,	// transpose information (B is transposed)
 						i != Aself, 	// 'delete A' condition
 						i != Bself);	// 'delete B' condition
+        
+        	*/
+        
+        	SpTuples<LIC,NUO> * C_cont = LocalHybridSpGEMM<SR, NUO>
+                        (*ARecv, *BRecv, // parameters themselves
+                        i != Aself,    // 'delete A' condition
+                        i != Bself);   // 'delete B' condition
+        
+        
+        
 		
 		if(!C_cont->isZero())
 			tomerge.push_back(C_cont);
@@ -751,12 +765,22 @@ SpParMat<IU,NUO,UDERO> Mult_AnXBn_DoubleBuff
 		}
 		SpParHelper::BCastMatrix(GridC->GetColWorld(), *BRecv, ess, i);	// then, receive its elements
 
+        	// before activating this remove transposing B2seq
+        	/*
 		SpTuples<LIC,NUO> * C_cont = MultiplyReturnTuples<SR, NUO>
 						(*ARecv, *BRecv, // parameters themselves
 						false, true,	// transpose information (B is transposed)
 						i != Aself, 	// 'delete A' condition
 						i != Bself);	// 'delete B' condition
 		
+        
+        	*/
+        
+        	SpTuples<LIC,NUO> * C_cont = LocalHybridSpGEMM<SR, NUO>
+                	(*ARecv, *BRecv, // parameters themselves
+                 	i != Aself,    // 'delete A' condition
+                 	i != Bself);   // 'delete B' condition
+        
 		if(!C_cont->isZero())
 			tomerge.push_back(C_cont);
 		else
@@ -784,6 +808,8 @@ SpParMat<IU,NUO,UDERO> Mult_AnXBn_DoubleBuff
 	}
 	else
 	{
+		B1seq->Transpose();
+		B2seq->Transpose();
 		(B.spSeq)->Merge(*B1seq, *B2seq);	
 		delete B1seq;
 		delete B2seq;
@@ -873,15 +899,20 @@ SpParMat<IU, NUO, UDERO> Mult_AnXBn_Synch
 						false, true,	// transpose information (B is transposed)
 						i != Aself, 	// 'delete A' condition
 						i != Bself);	// 'delete B' condition
-						*/
-		 
-		
+						
+         */
+		/*
 		SpTuples<IU,NUO> * C_cont = LocalSpGEMM<SR, NUO>
 						(*ARecv, *BRecv, // parameters themselves
 						i != Aself, 	// 'delete A' condition
 						i != Bself);	// 'delete B' condition
 		
-		
+        */
+        SpTuples<IU,NUO> * C_cont = LocalHybridSpGEMM<SR, NUO>
+                    (*ARecv, *BRecv, // parameters themselves
+                     i != Aself,    // 'delete A' condition
+                     i != Bself);   // 'delete B' condition
+    
 		if(!C_cont->isZero()) 
 			tomerge.push_back(C_cont);
 
@@ -911,6 +942,7 @@ SpParMat<IU, NUO, UDERO> Mult_AnXBn_Synch
 	
 	SpTuples<IU,NUO> * C_tuples = MultiwayMerge<SR>(tomerge, C_m, C_n,true);
 	UDERO * C = new UDERO(*C_tuples, false);
+    delete C_tuples;
 
 	//if(!clearB)
 	//	const_cast< UDERB* >(B.spSeq)->Transpose();	// transpose back to original
@@ -1002,8 +1034,9 @@ int64_t EstPerProcessNnzSUMMA(SpParMat<IU,NU1,UDERA> & A, SpParMat<IU,NU2,UDERB>
 	    // because colnnzC is of length nzc and estimates nnzs per column
 			// @OGUZ-EDIT Using hash spgemm for estimation
             //LIB * colnnzC = estimateNNZ(*ARecv, *BRecv);
-            LIB* flopC = estimateFLOP(*ARecv, *BRecv);
+			LIB* flopC = estimateFLOP(*ARecv, *BRecv);
 			LIB* colnnzC = estimateNNZ_Hash(*ARecv, *BRecv, flopC);
+            if (flopC) delete [] flopC;
 
             LIB nzc = BRecv->GetDCSC()->nzc;
             int64_t nnzC_stage = 0;
