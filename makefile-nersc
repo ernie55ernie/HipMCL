@@ -24,7 +24,7 @@ all: hipmcl
 $(COMBBLAS)/CommGrid.o:	$(COMBBLAS_SRC)/CommGrid.cpp $(COMBBLAS_INC)/CommGrid.h
 	$(COMPILER)  $(INCADD) $(FLAGS) -c -o $(COMBBLAS)/CommGrid.o $(COMBBLAS_SRC)/CommGrid.cpp 
 $(COMBBLAS)/mmio.o: $(COMBBLAS_SRC)/mmio.c
-	mpicc $(INCADD) $(FLAGS) -c -o $(COMBBLAS)/mmio.o $(COMBBLAS_SRC)/mmio.c
+	cc $(INCADD) $(GCCFLAGS) -DTHREADED -fopenmp -c -o $(COMBBLAS)/mmio.o $(COMBBLAS_SRC)/mmio.c
 
 $(COMBBLAS)/MPIType.o:	$(COMBBLAS_SRC)/MPIType.cpp $(COMBBLAS_INC)/MPIType.h
 	$(COMPILER) $(INCADD) $(FLAGS) -c -o $(COMBBLAS)/MPIType.o $(COMBBLAS_SRC)/MPIType.cpp 
