@@ -43,7 +43,3 @@ target_link_libraries(hipmcl CombBLASlib )
 ENABLE_TESTING()
 INCLUDE(CTest)
 ADD_TEST( hepth_mtx_test mpirun -np 4 bin/hipmcl -M data/hep-th.mtx --matrix-market -base 1 -I 2 )
-
-
-
-
