@@ -740,26 +740,17 @@ SpTuples<IU,NU> MergeAll( const std::vector<SpTuples<IU,NU> *> & ArrSpTups, IU m
 	}
 }
 
+
 /**
- * @param[in]   exclude if false,
- *      \n              then operation is A = A .* B
- *      \n              else operation is A = A .* not(B) 
+ *  operation is A = A .* not(B) 
  **/
 template <typename IU, typename NU1, typename NU2>
-Dcsc<IU, typename promote_trait<NU1,NU2>::T_promote> EWiseMult(const Dcsc<IU,NU1> & A, const Dcsc<IU,NU2> * B, bool exclude)
+Dcsc<IU, typename promote_trait<NU1,NU2>::T_promote> SetDifference(const Dcsc<IU,NU1> & A, const Dcsc<IU,NU2> * B)
 {
 	typedef typename promote_trait<NU1,NU2>::T_promote N_promote;
-	IU estnzc, estnz;
-	if(exclude)
-	{	
-		estnzc = A.nzc;
-		estnz = A.nz; 
-	} 
-	else
-	{
-		estnzc = std::min(A.nzc, B->nzc);
-		estnz  = std::min(A.nz, B->nz);
-	}
+	IU estnzc, estnz;	
+	estnzc = A.nzc;
+	estnz = A.nz; 
 
 	Dcsc<IU,N_promote> temp(estnz, estnzc);
 
@@ -769,8 +760,98 @@ Dcsc<IU, typename promote_trait<NU1,NU2>::T_promote> EWiseMult(const Dcsc<IU,NU1
 	IU j = 0;
 	temp.cp[0] = 0;
 	
-	if(!exclude)	// A = A .* B
+	while(i< A.nzc && B != NULL && j< B->nzc)
 	{
+		if(A.jc[i] > B->jc[j])		++j;
+		else if(A.jc[i] < B->jc[j])
+		{
+			temp.jc[curnzc++] = A.jc[i++];
+			for(IU k = A.cp[i-1]; k< A.cp[i]; k++)	
+			{
+				temp.ir[curnz] 		= A.ir[k];
+				temp.numx[curnz++] 	= A.numx[k];
+			}
+			temp.cp[curnzc] = temp.cp[curnzc-1] + (A.cp[i] - A.cp[i-1]);
+		}
+		else
+		{
+			IU ii = A.cp[i];
+			IU jj = B->cp[j];
+			IU prevnz = curnz;		
+			while (ii < A.cp[i+1] && jj < B->cp[j+1])
+			{
+				if (A.ir[ii] > B->ir[jj])	++jj;
+				else if (A.ir[ii] < B->ir[jj])
+				{
+					temp.ir[curnz] = A.ir[ii];
+					temp.numx[curnz++] = A.numx[ii++];
+				}
+				else	// eliminate those existing nonzeros
+				{
+					++ii;	
+					++jj;	
+				}
+			}
+			while (ii < A.cp[i+1])
+			{
+				temp.ir[curnz] = A.ir[ii];
+				temp.numx[curnz++] = A.numx[ii++];
+			}
+
+			if(prevnz < curnz)	// at least one nonzero exists in this column
+			{
+				temp.jc[curnzc++] = A.jc[i];	
+				temp.cp[curnzc] = temp.cp[curnzc-1] + curnz-prevnz;
+			}
+			++i;
+			++j;
+		}
+	}
+	while(i< A.nzc)
+	{
+		temp.jc[curnzc++] = A.jc[i++];
+		for(IU k = A.cp[i-1]; k< A.cp[i]; ++k)
+		{
+			temp.ir[curnz] 	= A.ir[k];
+			temp.numx[curnz++] = A.numx[k];
+		}
+		temp.cp[curnzc] = temp.cp[curnzc-1] + (A.cp[i] - A.cp[i-1]);
+	}
+
+	temp.Resize(curnzc, curnz);
+	return temp;
+}	
+
+
+/**
+ * @param[in]   exclude if false,
+ *      \n              then operation is A = A .* B
+ *      \n              else operation is A = A .* not(B) 
+ *
+ * Aydin (June 2021):  exclude=true case of this function now calls SetDifference above, to remove code duplication
+ **/
+template <typename IU, typename NU1, typename NU2>
+Dcsc<IU, typename promote_trait<NU1,NU2>::T_promote> EWiseMult(const Dcsc<IU,NU1> & A, const Dcsc<IU,NU2> * B, bool exclude)
+{
+	typedef typename promote_trait<NU1,NU2>::T_promote N_promote;
+	IU estnzc, estnz;
+	if(exclude)
+	{
+        	return combblas::SetDifference(A, B);    // call set difference for this version
+	} 
+	else // A = A .* B
+	{
+		estnzc = std::min(A.nzc, B->nzc);
+		estnz  = std::min(A.nz, B->nz);
+
+        	Dcsc<IU,N_promote> temp(estnz, estnzc);
+
+        	IU curnzc = 0;
+        	IU curnz = 0;
+        	IU i = 0;
+        	IU j = 0;
+        	temp.cp[0] = 0;
+
 		while(i< A.nzc && B != NULL && j<B->nzc)
 		{
 			if(A.jc[i] > B->jc[j]) 		++j;
@@ -799,70 +880,10 @@ Dcsc<IU, typename promote_trait<NU1,NU2>::T_promote> EWiseMult(const Dcsc<IU,NU1
 				++j;
 			}
 		}
-	}
-	else	// A = A .* not(B)
-	{
-		while(i< A.nzc && B != NULL && j< B->nzc)
-		{
-			if(A.jc[i] > B->jc[j])		++j;
-			else if(A.jc[i] < B->jc[j])
-			{
-				temp.jc[curnzc++] = A.jc[i++];
-				for(IU k = A.cp[i-1]; k< A.cp[i]; k++)	
-				{
-					temp.ir[curnz] 		= A.ir[k];
-					temp.numx[curnz++] 	= A.numx[k];
-				}
-				temp.cp[curnzc] = temp.cp[curnzc-1] + (A.cp[i] - A.cp[i-1]);
-			}
-			else
-			{
-				IU ii = A.cp[i];
-				IU jj = B->cp[j];
-				IU prevnz = curnz;		
-				while (ii < A.cp[i+1] && jj < B->cp[j+1])
-				{
-					if (A.ir[ii] > B->ir[jj])	++jj;
-					else if (A.ir[ii] < B->ir[jj])
-					{
-						temp.ir[curnz] = A.ir[ii];
-						temp.numx[curnz++] = A.numx[ii++];
-					}
-					else	// eliminate those existing nonzeros
-					{
-						++ii;	
-						++jj;	
-					}
-				}
-				while (ii < A.cp[i+1])
-				{
-					temp.ir[curnz] = A.ir[ii];
-					temp.numx[curnz++] = A.numx[ii++];
-				}
 
-				if(prevnz < curnz)	// at least one nonzero exists in this column
-				{
-					temp.jc[curnzc++] = A.jc[i];	
-					temp.cp[curnzc] = temp.cp[curnzc-1] + curnz-prevnz;
-				}
-				++i;
-				++j;
-			}
-		}
-		while(i< A.nzc)
-		{
-			temp.jc[curnzc++] = A.jc[i++];
-			for(IU k = A.cp[i-1]; k< A.cp[i]; ++k)
-			{
-				temp.ir[curnz] 	= A.ir[k];
-				temp.numx[curnz++] = A.numx[k];
-			}
-			temp.cp[curnzc] = temp.cp[curnzc-1] + (A.cp[i] - A.cp[i-1]);
-		}
+		temp.Resize(curnzc, curnz);
+		return temp;
 	}
-
-	temp.Resize(curnzc, curnz);
-	return temp;
 }	
 
 template <typename N_promote, typename IU, typename NU1, typename NU2, typename _BinaryOperation>

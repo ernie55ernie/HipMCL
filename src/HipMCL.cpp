@@ -54,12 +54,26 @@ using namespace combblas;
 
 #define EPS 0.0001
 
+double mcl_symbolictime;
 double mcl_Abcasttime;
 double mcl_Bbcasttime;
 double mcl_localspgemmtime;
 double mcl_multiwaymergetime;
 double mcl_kselecttime;
 double mcl_prunecolumntime;
+
+/* Variables specific for timing communication avoiding setting in detail*/
+double mcl3d_conversiontime;
+double mcl3d_symbolictime;
+double mcl3d_Abcasttime;
+double mcl3d_Bbcasttime;
+double mcl3d_SUMMAtime;
+double mcl3d_localspgemmtime;
+double mcl3d_SUMMAmergetime;
+double mcl3d_reductiontime;
+double mcl3d_3dmergetime;
+double mcl3d_kselecttime;
+
 // for compilation (TODO: fix this dependency)
 int cblas_splits;
 double cblas_alltoalltime;
@@ -85,7 +99,7 @@ typedef struct
     //Preprocessing
     int randpermute;
     bool remove_isolated;
-    
+
     //inflation
     double inflation;
     
@@ -102,6 +116,8 @@ typedef struct
     int perProcessMem;
     bool isDoublePrecision; // true: double, false: float
     bool is64bInt; // true: int64_t for local indexing, false: int32_t (for local indexing)
+    int layers; // Number of layers to use in communication avoiding SpGEMM. 
+    int compute;
     
     //debugging
     bool show;
@@ -136,6 +152,8 @@ void InitParam(HipMCLParam & param)
     param.preprune = false;
     
     //HipMCL optimization
+    param.layers = 1;
+    param.compute = 1; // 1 means hash-based computation, 2 means heap-based computation
     param.phases = 1;
     param.perProcessMem = 0;
     param.isDoublePrecision = true;
@@ -167,6 +185,7 @@ void ShowParam(HipMCLParam & param)
     runinfo << "    Remove isolated vertices? : ";
     if (param.remove_isolated) runinfo << "yes";
     else runinfo << "no" << endl;
+
     
     runinfo << "    Randomly permute vertices? : ";
     if (param.randpermute) runinfo << "yes";
@@ -192,6 +211,8 @@ void ShowParam(HipMCLParam & param)
     
     
     runinfo << "HipMCL optimization" << endl;
+    runinfo << "    Number of layers : " << param.layers << endl;
+    runinfo << "    Computation kernel : " << param.compute << endl;
     runinfo << "    Number of phases: " << param.phases << endl;
     runinfo << "    Memory avilable per process: ";
     if(param.perProcessMem>0) runinfo << param.perProcessMem << "GB" << endl;
@@ -260,6 +281,12 @@ void ProcessParam(int argc, char* argv[], HipMCLParam & param)
         else if (strcmp(argv[i],"--preprune")==0) {
             param.preprune = true;
         }
+		else if (strcmp(argv[i],"-layers")==0) {
+            param.layers = atoi(argv[i + 1]);
+        }
+		else if (strcmp(argv[i],"-compute")==0) {
+            param.layers = atoi(argv[i + 1]);
+        }
         else if (strcmp(argv[i],"-phases")==0) {
             param.phases = atoi(argv[i + 1]);
         }
@@ -316,6 +343,8 @@ void ShowOptions()
     runinfo << "    --preprune : if provided, apply prune/select/recovery before the first iteration (needed when dense columns are present) (default: don't preprune. However, if the average nonzero per column is larger than max{S,R}, prepruning is still applied by default)\n";
     
     runinfo << "HipMCL optimization" << endl;
+    runinfo << "    -layers <number of layers> (default:1)\n";
+    runinfo << "    -compute <1 or 2> (default:1)\n";
     runinfo << "    -phases <number of phases> (default:1)\n";
     runinfo << "    -per-process-mem <memory (GB) available per process> (default:0, number of phases is not estimated)\n";
     runinfo << "    --single-precision (if not provided, use double precision floating point numbers)\n" << endl;
@@ -333,7 +362,7 @@ void ShowOptions()
     runinfo << "Same as above with 4 processes and 2 theaded per process cores:\nexport OMP_NUM_THREADS=2\nmpirun -np 4 bin/hipmcl -M data/sevenvertexgraph.txt -I 2 -per-process-mem 2" << endl;
     runinfo << "Example with a graph in matrix market format:\nbin/hipmcl -M data/sevenvertex.mtx --matrix-market -base 1 -I 2 -per-process-mem 8" << endl;
     
-    runinfo << "Example on the NERSC/Edison system with 16 nodes and 24 threads per node: \nsrun -N 16 -n 16 -c 24  bin/hipmcl -M data/hep-th.mtx --matrix-market -base 1 -per-process-mem 64 -o hep-th.hipmcl" << endl;
+    runinfo << "Example on the NERSC/Cori system with 16 nodes, 4 process per node and 16 threads per process: \nsrun -N 16 -n 64 -c 16  bin/hipmcl -M data/hep-th.mtx --matrix-market -base 1 -per-process-mem 27 -o hep-th.hipmcl" << endl;
     SpParHelper::Print(runinfo.str());
 }
 
@@ -362,7 +391,17 @@ void MakeColStochastic(SpParMat<IT,NT,DER> & A)
 {
     FullyDistVec<IT, NT> colsums = A.Reduce(Column, plus<NT>(), 0.0);
     colsums.Apply(safemultinv<NT>());
-    A.DimApply(Column, colsums, multiplies<NT>());	// scale each "Column" with the given vector
+    A.DimApply(Column, colsums, multiplies<NT>());    // scale each "Column" with the given vector
+}
+
+template <typename IT, typename NT, typename DER>
+void MakeColStochastic3D(SpParMat3D<IT,NT,DER> & A3D)
+{
+    //SpParMat<IT, NT, DER> * ALayer = A3D.GetLayerMat();
+    std::shared_ptr< SpParMat<IT, NT, DER> > ALayer = A3D.GetLayerMat();
+    FullyDistVec<IT, NT> colsums = ALayer->Reduce(Column, plus<NT>(), 0.0);
+    colsums.Apply(safemultinv<NT>());
+    ALayer->DimApply(Column, colsums, multiplies<NT>());    // scale each "Column" with the given vector
 }
 
 template <typename IT, typename NT, typename DER>
@@ -382,9 +421,40 @@ NT Chaos(SpParMat<IT,NT,DER> & A)
 }
 
 template <typename IT, typename NT, typename DER>
+NT Chaos3D(SpParMat3D<IT,NT,DER> & A3D)
+{
+    //SpParMat<IT, NT, DER> * ALayer = A3D.GetLayerMat();
+    std::shared_ptr< SpParMat<IT, NT, DER> > ALayer = A3D.GetLayerMat();
+
+    // sums of squares of columns
+    FullyDistVec<IT, NT> colssqs = ALayer->Reduce(Column, plus<NT>(), 0.0, bind2nd(exponentiate(), 2));
+    // Matrix entries are non-negative, so max() can use zero as identity
+    FullyDistVec<IT, NT> colmaxs = ALayer->Reduce(Column, maximum<NT>(), 0.0);
+    colmaxs -= colssqs;
+
+    // multiply by number of nonzeros in each column
+    FullyDistVec<IT, NT> nnzPerColumn = ALayer->Reduce(Column, plus<NT>(), 0.0, [](NT val){return 1.0;});
+    colmaxs.EWiseApply(nnzPerColumn, multiplies<NT>());
+    
+    NT layerChaos = colmaxs.Reduce(maximum<NT>(), 0.0);
+
+    NT totalChaos = 0.0;
+    MPI_Allreduce( &layerChaos, &totalChaos, 1, MPIType<NT>(), MPI_MAX, A3D.getcommgrid3D()->GetFiberWorld());
+    return totalChaos;
+}
+
+template <typename IT, typename NT, typename DER>
 void Inflate(SpParMat<IT,NT,DER> & A, double power)
 {
     A.Apply(bind2nd(exponentiate(), power));
+}
+
+template <typename IT, typename NT, typename DER>
+void Inflate3D(SpParMat3D<IT,NT,DER> & A3D, double power)
+{
+    //SpParMat<IT, NT, DER> * ALayer = A3D.GetLayerMat();
+    std::shared_ptr< SpParMat<IT, NT, DER> > ALayer = A3D.GetLayerMat();
+    ALayer->Apply(bind2nd(exponentiate(), power));
 }
 
 // default adjustloop setting
@@ -484,15 +554,45 @@ FullyDistVec<IT, IT> HipMCL(SpParMat<IT,NT,DER> & A, HipMCLParam & param)
     int it=1;
     double tInflate = 0;
     double tExpand = 0;
-     typedef PlusTimesSRing<NT, NT> PTFF;
+    typedef PlusTimesSRing<NT, NT> PTFF;
+	SpParMat3D<IT,NT,DER> A3D_cs(param.layers);
+	if(param.layers > 1) {
+    	SpParMat<IT,NT,DER> A2D_cs = SpParMat<IT, NT, DER>(A);
+		A3D_cs = SpParMat3D<IT,NT,DER>(A2D_cs, param.layers, true, false);    // Non-special column split
+	}
     // while there is an epsilon improvement
     while( chaos > EPS)
     {
+		SpParMat3D<IT,NT,DER> A3D_rs(param.layers);
+		if(param.layers > 1) {
+			A3D_rs  = SpParMat3D<IT,NT,DER>(A3D_cs, false); // Create new rowsplit copy of matrix from colsplit copy
+		}
+
         double t1 = MPI_Wtime();
-        //A.Square<PTFF>() ;		// expand
-        A = MemEfficientSpGEMM<PTFF, NT, DER>(A, A, param.phases, param.prunelimit, (IT)param.select, (IT)param.recover_num, param.recover_pct, param.kselectVersion, param.perProcessMem);
+        //A.Square<PTFF>() ;        // expand
+		if(param.layers == 1){
+			A = MemEfficientSpGEMM<PTFF, NT, DER>(A, A, param.phases, param.prunelimit, (IT)param.select, (IT)param.recover_num, param.recover_pct, param.kselectVersion, 1, param.perProcessMem);
+		}
+		else{
+			A3D_cs = MemEfficientSpGEMM3D<PTFF, NT, DER, IT, NT, NT, DER, DER >(
+                A3D_cs, A3D_rs, 
+                param.phases, 
+                param.prunelimit, 
+                (IT)param.select, 
+                (IT)param.recover_num, 
+                param.recover_pct, 
+                param.kselectVersion,
+                1,
+                param.perProcessMem
+         	);
+		}
         
-        MakeColStochastic(A);
+		if(param.layers == 1){
+			MakeColStochastic(A);
+		}
+		else{
+            MakeColStochastic3D(A3D_cs);
+		}
         tExpand += (MPI_Wtime() - t1);
         
         if(param.show)
@@ -500,11 +600,16 @@ FullyDistVec<IT, IT> HipMCL(SpParMat<IT,NT,DER> & A, HipMCLParam & param)
             SpParHelper::Print("After expansion\n");
             A.PrintInfo();
         }
-        chaos = Chaos(A);
+        if(param.layers == 1) chaos = Chaos(A);
+        else chaos = Chaos3D(A3D_cs);
         
         double tInflate1 = MPI_Wtime();
-        Inflate(A, param.inflation);
-        MakeColStochastic(A);
+        if (param.layers == 1) Inflate(A, param.inflation);
+        else Inflate3D(A3D_cs, param.inflation);
+
+        if(param.layers == 1) MakeColStochastic(A);
+        else MakeColStochastic3D(A3D_cs);
+
         tInflate += (MPI_Wtime() - tInflate1);
         
         if(param.show)
@@ -535,7 +640,9 @@ FullyDistVec<IT, IT> HipMCL(SpParMat<IT,NT,DER> & A, HipMCLParam & param)
     // bool does not work in A.AddLoops(1) used in LACC: can not create a fullydist vector with Bool
     // SpParMat<IT,NT,DER> A does not work because int64_t and float promote trait not defined
     // hence, we are forcing this with IT and double
-    SpParMat<IT,double, SpDCCols < IT, double >> ADouble = A;
+    SpParMat<IT,double, SpDCCols < IT, double >> ADouble(MPI_COMM_WORLD);
+    if(param.layers == 1) ADouble = A;
+    else ADouble = A3D_cs.Convert2D();
     FullyDistVec<IT, IT> cclabels = Interpret(ADouble);
     
     
@@ -545,20 +652,41 @@ FullyDistVec<IT, IT> HipMCL(SpParMat<IT,NT,DER> & A, HipMCLParam & param)
     MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
     if(myrank==0)
     {
-        cout << "================detailed timing==================" << endl;
+        if(param.layers == 1){
+            cout << "================detailed timing==================" << endl;
+            cout << "Expansion: " << mcl_Abcasttime + mcl_Bbcasttime + mcl_localspgemmtime + mcl_multiwaymergetime << endl;
+            cout << "       Abcast= " << mcl_Abcasttime << endl;
+            cout << "       Bbcast= " << mcl_Bbcasttime << endl;
+            cout << "       localspgemm= " << mcl_localspgemmtime << endl;
+            cout << "       multiwaymergetime= "<< mcl_multiwaymergetime << endl;
+            cout << "Prune: " << mcl_kselecttime + mcl_prunecolumntime << endl;
+            cout << "       kselect= " << mcl_kselecttime << endl;
+            cout << "       prunecolumn= " << mcl_prunecolumntime << endl;
+            cout << "Inflation " << tInflate << endl;
+            cout << "Component: " << tcc << endl;
+            cout << "File I/O: " << tIO << endl;
+            cout << "=================================================" << endl;
+        }
+        else{
+            cout << "================detailed timing==================" << endl;
+            cout << "Expansion: " << mcl3d_symbolictime + mcl3d_Abcasttime + mcl3d_Bbcasttime + mcl3d_localspgemmtime + mcl3d_SUMMAmergetime + mcl3d_reductiontime + mcl3d_3dmergetime << endl;
+            cout << "       Symbolic=" << mcl3d_symbolictime << endl;
+            cout << "       SUMMAtime= "<< mcl3d_SUMMAtime << endl;
+            cout << "       Abcast= " << mcl3d_Abcasttime << endl;
+            cout << "       Bbcast= " << mcl3d_Bbcasttime << endl;
+            cout << "       localspgemm= " << mcl3d_localspgemmtime << endl;
+            cout << "       SUMMAmergetime= "<< mcl3d_SUMMAmergetime << endl;
+            cout << "       reductiontime= "<< mcl3d_reductiontime << endl;
+            cout << "       3dmergetime= "<< mcl3d_3dmergetime << endl;
+            cout << "Prune: " << mcl_kselecttime + mcl_prunecolumntime << endl;
+            cout << "       kselect= " << mcl_kselecttime << endl;
+            cout << "       prunecolumn= " << mcl_prunecolumntime << endl;
+            cout << "Inflation " << tInflate << endl;
+            cout << "Component: " << tcc << endl;
+            cout << "File I/O: " << tIO << endl;
+            cout << "=================================================" << endl;
         
-        cout << "Expansion: " << mcl_Abcasttime + mcl_Bbcasttime + mcl_localspgemmtime + mcl_multiwaymergetime << endl;
-        cout << "       Abcast= " << mcl_Abcasttime << endl;
-        cout << "       Bbcast= " << mcl_Bbcasttime << endl;
-        cout << "       localspgemm= " << mcl_localspgemmtime << endl;
-        cout << "       multiwaymergetime= "<< mcl_multiwaymergetime << endl;
-        cout << "Prune: " << mcl_kselecttime + mcl_prunecolumntime << endl;
-        cout << "       kselect= " << mcl_kselecttime << endl;
-        cout << "       prunecolumn= " << mcl_prunecolumntime << endl;
-        cout << "Inflation " << tInflate << endl;
-        cout << "Component: " << tcc << endl;
-        cout << "File I/O: " << tIO << endl;
-        cout << "=================================================" << endl;
+        }
     }
     
 #endif
@@ -698,13 +826,6 @@ int main(int argc, char* argv[])
         return -1;
     }
     
-    
-    if(myrank == 0)
-    {
-        cout << "\nProcess Grid used (pr x pc x threads): " << sqrt(nprocs) << " x " << sqrt(nprocs) << " x " << nthreads << endl;
-    }
-    
-    
     // show parameters used to run HipMCL
     ShowParam(param);
     
@@ -733,6 +854,7 @@ int main(int argc, char* argv[])
     
     
     // make sure the destructors for all objects are called before MPI::Finalize()
-    MPI_Finalize();	
+    MPI_Finalize();    
     return 0;
 }
+

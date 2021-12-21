@@ -75,7 +75,7 @@ public:
 	
 	// Constructors
 	SpParMat ();
-    SpParMat (MPI_Comm world); 	// ABAB: there is risk that any integer would call this constructor due to MPICH representation
+    	SpParMat (MPI_Comm world); 	// ABAB: there is risk that any integer would call this constructor due to MPICH representation
 	SpParMat (std::shared_ptr<CommGrid> grid);
 	SpParMat (DER * myseq, std::shared_ptr<CommGrid> grid);
 		
@@ -100,6 +100,7 @@ public:
 	void Transpose();
 	void FreeMemory();
 	void EWiseMult (const SpParMat< IT,NT,DER >  & rhs, bool exclude);
+	void SetDifference (const SpParMat< IT,NT,DER >  & rhs);
 	void EWiseScale (const DenseParMat<IT,NT> & rhs);
 	void Find (FullyDistVec<IT,IT> & , FullyDistVec<IT,IT> & , FullyDistVec<IT,NT> & ) const;
 	void Find (FullyDistVec<IT,IT> & , FullyDistVec<IT,IT> & ) const;
@@ -212,12 +213,27 @@ public:
 	//! General indexing with serial semantics
 	template <typename SelectFirstSR, typename SelectSecondSR>
 	SpParMat<IT,NT,DER> SubsRef_SR (const FullyDistVec<IT,IT> & ri, const FullyDistVec<IT,IT> & ci, bool inplace=false);
+
+	// Column- or row-only indexing
+	template<typename SelectFirstSR,
+			 typename SelectSecondSR>
+	SpParMat<IT, NT, DER>
+	SubsRef_SR (const FullyDistVec<IT, IT> &v, Dim dim, bool inplace = false);
 	
 	SpParMat<IT,NT,DER> operator() (const FullyDistVec<IT,IT> & ri, const FullyDistVec<IT,IT> & ci, bool inplace=false)
 	{
 		return SubsRef_SR<BoolCopy1stSRing<NT>, BoolCopy2ndSRing<NT> >(ri, ci, inplace);
 	}
-	void Prune(const FullyDistVec<IT,IT> & ri, const FullyDistVec<IT,IT> & ci);	//!< prune all entries whose row indices are in ri and column indices are in ci
+
+	SpParMat<IT, NT, DER>
+	operator() (const FullyDistVec<IT, IT> &v, Dim dim, bool inplace = false)
+	{
+		return SubsRef_SR<BoolCopy1stSRing<NT>,
+						  BoolCopy2ndSRing<NT>>(v, dim, inplace);
+	}
+	
+	void Prune(const FullyDistVec<IT,IT> & ri, const FullyDistVec<IT,IT> & ci);	//!< prune all entries whose row indices are in ri AND column indices are in ci
+	void PruneFull(const FullyDistVec<IT,IT> & ri, const FullyDistVec<IT,IT> & ci);	//!< prune all entries whose row indices are in ri OR column indices are in ci
 	void SpAsgn(const FullyDistVec<IT,IT> & ri, const FullyDistVec<IT,IT> & ci, SpParMat<IT,NT,DER> & B);
 	
 	bool operator== (const SpParMat<IT,NT,DER> & rhs) const;
@@ -255,9 +271,15 @@ public:
 	
    	template <typename _BinaryOperation>
     	void ParallelReadMM (const std::string & filename, bool onebased, _BinaryOperation BinOp);
+    
+    template <class HANDLER>
+    void ParallelWriteMM(const std::string & filename, bool onebased, HANDLER handler);
+    void ParallelWriteMM(const std::string & filename, bool onebased) { ParallelWriteMM(filename, onebased, ScalarReadSaveHandler()); };
 
-    	template <typename _BinaryOperation>
-    	FullyDistVec<IT,std::array<char, MAXVERTNAME>> ReadGeneralizedTuples(const std::string&, _BinaryOperation);
+    void ParallelBinaryWrite(std::string filename) const;
+    
+    template <typename _BinaryOperation>
+    FullyDistVec<IT,std::array<char, MAXVERTNAME>> ReadGeneralizedTuples(const std::string&, _BinaryOperation);
     
 	template <class HANDLER>
 	void ReadDistribute (const std::string & filename, int master, bool nonum, HANDLER handler, bool transpose = false, bool pario = false);
@@ -276,13 +298,23 @@ public:
 	typename DER::LocalIT getlocalrows() const { return spSeq->getnrow(); }
 	typename DER::LocalIT getlocalcols() const { return spSeq->getncol();} 
 	typename DER::LocalIT getlocalnnz() const { return spSeq->getnnz(); }
-	DER & seq() { return (*spSeq); }
-	DER * seqptr() { return spSeq; }
+	DER & seq() const { return (*spSeq); }
+	DER * seqptr() const { return spSeq; }
     
     template <typename _BinaryOperation, typename LIT>
     void SparseCommon(std::vector< std::vector < std::tuple<LIT,LIT,NT> > > & data, LIT locsize, IT total_m, IT total_n, _BinaryOperation BinOp);
+    //void SparseCommon(std::vector< std::vector < std::tuple<typename DER::LocalIT,typename DER::LocalIT,NT> > > & data, typename DER::LocalIT locsize, IT total_m, IT total_n, _BinaryOperation BinOp);
+
+	// @TODO-OGUZ allow different index type for blocked matrices
+	std::vector<std::vector<SpParMat<IT, NT, DER>>>
+	BlockSplit (int br, int bc);
+	
 
 	//! Friend declarations
+	template <typename SR, typename IU, typename NU1, typename NU2, typename UDER1, typename UDER2> 
+	friend IU
+	EstimateFLOP (SpParMat<IU,NU1,UDER1> & A, SpParMat<IU,NU2,UDER2> & B, bool clearA, bool clearB);
+
 	template <typename SR, typename NUO, typename UDERO, typename IU, typename NU1, typename NU2, typename UDER1, typename UDER2> 
 	friend SpParMat<IU, NUO, UDERO> 
 	Mult_AnXBn_DoubleBuff (SpParMat<IU,NU1,UDER1> & A, SpParMat<IU,NU2,UDER2> & B, bool clearA, bool clearB);
@@ -290,9 +322,13 @@ public:
 	template <typename SR, typename NUO, typename UDERO, typename IU, typename NU1, typename NU2, typename UDER1, typename UDER2> 
 	friend SpParMat<IU,NUO,UDERO> 
 	Mult_AnXBn_Synch (SpParMat<IU,NU1,UDER1> & A, SpParMat<IU,NU2,UDER2> & B, bool clearA, bool clearB);
+
+	template <typename SR, typename NUO, typename UDERO, typename IU, typename NU1, typename NU2, typename UDER1, typename UDER2> 
+	friend SpParMat<IU,NUO,UDERO> 
+	Mult_AnXBn_Overlap (SpParMat<IU,NU1,UDER1> & A, SpParMat<IU,NU2,UDER2> & B, bool clearA, bool clearB);
     
     template <typename IU, typename NU1, typename NU2, typename UDERA, typename UDERB>
-    friend int64_t EstPerProcessNnzSUMMA(SpParMat<IU,NU1,UDERA> & A, SpParMat<IU,NU2,UDERB> & B);
+    friend int64_t EstPerProcessNnzSUMMA(SpParMat<IU,NU1,UDERA> & A, SpParMat<IU,NU2,UDERB> & B, bool hashEstimate);
 
 	template <typename SR, typename IU, typename NU1, typename NU2, typename UDER1, typename UDER2> 
 	friend SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UDER1,UDER2>::T_promote> 
@@ -306,9 +342,17 @@ public:
 	friend SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UDER1,UDER2>::T_promote> 
 	Mult_AnXBn_Fence (const SpParMat<IU,NU1,UDER1> & A, const SpParMat<IU,NU2,UDER2> & B );
     
+	template <typename SR, typename NUO, typename UDERO, typename IU, typename NU1, typename NU2, typename UDER1, typename UDER2> 
+	friend SpParMat<IU, NUO, UDERO> 
+	Mult_AnXBn_SUMMA (SpParMat<IU,NU1,UDER1> & A, SpParMat<IU,NU2,UDER2> & B, bool clearA, bool clearB);
+
     template <typename SR, typename NUO, typename UDERO, typename IU, typename NU1, typename NU2, typename UDERA, typename UDERB>
     friend SpParMat<IU,NUO,UDERO> MemEfficientSpGEMM (SpParMat<IU,NU1,UDERA> & A, SpParMat<IU,NU2,UDERB> & B,
-                                               int phases, NUO hardThreshold, IU selectNum, IU recoverNum, NUO recoverPct, int kselectVersion, int64_t perProcessMem);
+                                               int phases, NUO hardThreshold, IU selectNum, IU recoverNum, NUO recoverPct, int kselectVersion, int computationKernel, int64_t perProcessMem);
+
+    template <typename SR, typename NUO, typename UDERO, typename IU, typename NU1, typename NU2, typename UDERA, typename UDERB>
+    friend int CalculateNumberOfPhases (SpParMat<IU,NU1,UDERA> & A, SpParMat<IU,NU2,UDERB> & B,
+                                               NUO hardThreshold, IU selectNum, IU recoverNum, NUO recoverPct, int kselectVersion, int64_t perProcessMem);
 
 	template <typename SR, typename IU, typename NUM, typename NUV, typename UDER> 
 	friend FullyDistSpVec<IU,typename promote_trait<NUM,NUV>::T_promote>  

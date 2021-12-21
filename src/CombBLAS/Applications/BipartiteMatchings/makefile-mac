@@ -1,0 +1,69 @@
+COMBBLAS = ../..
+COMBBLAS_INC = $(COMBBLAS)/include/CombBLAS
+COMBBLAS_SRC = $(COMBBLAS)/src
+INCADD = -I$(COMBBLAS)/include/ -I$(COMBBLAS)/psort-1.0/include/ -I$(COMBBLAS)/usort/include/ -I$(COMBBLAS)/graph500-1.2/generator/include/ 
+
+
+OPT = -O2 -DMPICH_IGNORE_CXX_SEEK -DGRAPH_GENERATOR_SEQ -Wreturn-type #-DNDEBUG (disables important assertions)
+DEB = -g -O0 -fno-inline -DMPICH_IGNORE_CXX_SEEK -DGRAPH_GENERATOR_SEQ -Wreturn-type -DDEBUG 
+PROF = -pg -O2 -fno-inline -DMPICH_IGNORE_CXX_SEEK -DGRAPH_GENERATOR_SEQ -Wreturn-type
+COMPILER = mpicxx -std=c++11 -std=c++14 -DTHREADED -fopenmp  -fpermissive  
+FLAGS = $(OPT) -Wall -Wno-maybe-uninitialized -DGNU_PARALLEL#-DTIMING #-DCOMBBLAS_DEBUG 
+
+
+$(COMBBLAS)/graph500-1.2/generator/libgraph_generator_seq.a:
+	$(MAKE) -C $(COMBBLAS)/graph500-1.2/generator
+
+CommGrid.o:	$(COMBBLAS_SRC)/CommGrid.cpp $(COMBBLAS_INC)/CommGrid.h
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o CommGrid.o $(COMBBLAS_SRC)/CommGrid.cpp 
+mmio.o: $(COMBBLAS_SRC)/mmio.c
+	mpicc $(INCADD) $(FLAGS) -c -o mmio.o $(COMBBLAS_SRC)/mmio.c
+
+MPIType.o:	$(COMBBLAS_SRC)/MPIType.cpp $(COMBBLAS_INC)/MPIType.h
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o MPIType.o $(COMBBLAS_SRC)/MPIType.cpp 
+
+MemoryPool.o:	$(COMBBLAS_SRC)/MemoryPool.cpp $(COMBBLAS_INC)/SpDefs.h
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o MemoryPool.o $(COMBBLAS_SRC)/MemoryPool.cpp 
+
+hash.o:	$(COMBBLAS_SRC)/hash.cpp $(COMBBLAS_INC)/hash.hpp
+	$(COMPILER) $(FLAGS) $(INCADD) -c -o hash.o $(COMBBLAS_SRC)/hash.cpp
+
+
+all: awpm bpmm bpml 
+
+ApproxWeightPerfectMatching.o: ApproxWeightPerfectMatching.cpp ApproxWeightPerfectMatching.h Utility.h  BPMaximumMatching.h BPMaximalMatching.h $(COMBBLAS_INC)/SpDCCols.cpp $(COMBBLAS_INC)/dcsc.cpp $(COMBBLAS_INC)/SpHelper.h $(COMBBLAS_INC)/SpParMat.h $(COMBBLAS_INC)/ParFriends.h $(COMBBLAS_INC)/SpParMat.cpp $(COMBBLAS_INC)/SpDefs.h $(COMBBLAS_INC)/SpTuples.cpp
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o ApproxWeightPerfectMatching.o ApproxWeightPerfectMatching.cpp 
+
+BPMaximumMatching.o: BPMaximumMatching.cpp  BPMaximumMatching.h BPMaximalMatching.h $(COMBBLAS_INC)/SpDCCols.cpp $(COMBBLAS_INC)/dcsc.cpp $(COMBBLAS_INC)/SpHelper.h $(COMBBLAS_INC)/SpParMat.h $(COMBBLAS_INC)/ParFriends.h $(COMBBLAS_INC)/SpParMat.cpp $(COMBBLAS_INC)/SpDefs.h $(COMBBLAS_INC)/SpTuples.cpp
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o BPMaximumMatching.o BPMaximumMatching.cpp
+
+BPMaximalMatching.o: BPMaximalMatching.cpp  BPMaximalMatching.h $(COMBBLAS_INC)/SpDCCols.cpp $(COMBBLAS_INC)/dcsc.cpp $(COMBBLAS_INC)/SpHelper.h $(COMBBLAS_INC)/SpParMat.h $(COMBBLAS_INC)/ParFriends.h $(COMBBLAS_INC)/SpParMat.cpp $(COMBBLAS_INC)/SpDefs.h $(COMBBLAS_INC)/SpTuples.cpp
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o BPMaximalMatching.o BPMaximalMatching.cpp
+
+auction.o: auction.cpp $(COMBBLAS_INC)/SpDCCols.cpp $(COMBBLAS_INC)/dcsc.cpp $(COMBBLAS_INC)/SpHelper.h $(COMBBLAS_INC)/SpParMat.h $(COMBBLAS_INC)/ParFriends.h $(COMBBLAS_INC)/SpParMat.cpp $(COMBBLAS_INC)/SpDefs.h $(COMBBLAS_INC)/SpTuples.cpp
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o auction.o auction.cpp
+
+
+
+awpm: ApproxWeightPerfectMatching.o MemoryPool.o CommGrid.o MPIType.o mmio.o hash.o $(COMBBLAS)/graph500-1.2/generator/libgraph_generator_seq.a
+	$(COMPILER) $(INCADD) $(FLAGS) -o awpm ApproxWeightPerfectMatching.o MemoryPool.o mmio.o CommGrid.o MPIType.o hash.o -L$(COMBBLAS)/graph500-1.2/generator -lgraph_generator_seq
+
+bpmm: BPMaximumMatching.o MemoryPool.o CommGrid.o MPIType.o mmio.o hash.o $(COMBBLAS)/graph500-1.2/generator/libgraph_generator_seq.a
+	$(COMPILER) $(INCADD) $(FLAGS) -o bpmm BPMaximumMatching.o MemoryPool.o mmio.o CommGrid.o MPIType.o hash.o -L$(COMBBLAS)/graph500-1.2/generator -lgraph_generator_seq
+
+
+bpml: BPMaximalMatching.o MemoryPool.o CommGrid.o MPIType.o mmio.o hash.o $(COMBBLAS)/graph500-1.2/generator/libgraph_generator_seq.a
+	$(COMPILER) $(INCADD) $(FLAGS) -o bpml BPMaximalMatching.o MemoryPool.o mmio.o CommGrid.o MPIType.o hash.o -L$(COMBBLAS)/graph500-1.2/generator -lgraph_generator_seq
+	
+auction: auction.o MemoryPool.o CommGrid.o MPIType.o mmio.o hash.o $(COMBBLAS)/graph500-1.2/generator/libgraph_generator_seq.a  
+	$(COMPILER) $(INCADD) $(FLAGS) -o auction auction.o MemoryPool.o mmio.o CommGrid.o MPIType.o hash.o -L$(COMBBLAS)/graph500-1.2/generator -lgraph_generator_seq
+
+
+
+clean:
+	rm -rf ../*.o
+	rm -f bpmm bpml awpm auction
+	rm -f *.o
+	rm -f $(COMBBLAS)/graph500-1.2/generator/*.o
+	rm -f $(COMBBLAS)/graph500-1.2/generator/libgraph_generator_seq.a
+

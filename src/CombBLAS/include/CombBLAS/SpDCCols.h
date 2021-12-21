@@ -270,6 +270,7 @@ public:
 
 	void EWiseScale(NT ** scaler, IT m_scaler, IT n_scaler);
 	void EWiseMult (const SpDCCols<IT,NT> & rhs, bool exclude);
+	void SetDifference (const SpDCCols<IT,NT> & rhs);
 	
 	void Transpose();				//!< Mutator version, replaces the calling object 
 	SpDCCols<IT,NT> TransposeConst() const;		//!< Const version, doesn't touch the existing object
@@ -281,7 +282,11 @@ public:
 	}
     
     void ColSplit(int parts, std::vector< SpDCCols<IT,NT> > & matrices); //!< \attention Destroys calling object (*this)
+    void ColSplit(int parts, std::vector< SpDCCols<IT,NT>* > & matrices); //!< \attention Destroys calling object (*this)
+    void ColSplit(std::vector<IT> & cutSizes, std::vector< SpDCCols<IT,NT> > & matrices); //!< \attention Destroys calling object (*this)
+    void ColSplit(std::vector<IT> & cutSizes, std::vector< SpDCCols<IT,NT>* > & matrices); //!< \attention Destroys calling object (*this)
     void ColConcatenate(std::vector< SpDCCols<IT,NT> > & matrices);    //!< \attention Destroys its parameters (matrices)
+    void ColConcatenate(std::vector< SpDCCols<IT,NT>* > & matrices);    //!< \attention Destroys its parameters (matrices)
 
 	void Split(SpDCCols<IT,NT> & partA, SpDCCols<IT,NT> & partB); 	//!< \attention Destroys calling object (*this)
 	void Merge(SpDCCols<IT,NT> & partA, SpDCCols<IT,NT> & partB);	//!< \attention Destroys its parameters (partA & partB)

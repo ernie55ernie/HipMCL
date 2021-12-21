@@ -1,0 +1,7 @@
+CMakeFiles
+*.o
+hipmcl
+.DS_Store
+_build
+_install
+cmake

@@ -1,0 +1,125 @@
+#INCADD = -I/global/homes/a/abuluc \
+# 	-I/opt/cray/pmi/1.0-1.0000.7901.22.1.ss/include \
+# 	-I/opt/cray/mpt/5.1.0/xt/seastar/mpich2-gnu/include \
+# 	-I/opt/cray/mpt/5.1.0/xt/seastar/sma/include \
+# 	-I/opt/xt-libsci/10.4.8/gnu/include \
+# 	-I/usr/include/alps \
+#	-I/opt/gcc/4.5.1/snos/include/g++ -I/opt/gcc/4.5.1/snos/include/g++/x86_64-suse-linux -I/opt/gcc/4.5.1/snos/include/g++/backward \
+# 	-I/usr/local/include \
+# 	-I/opt/gcc/4.5.1/snos/include \
+# 	-I/opt/gcc/4.5.1/snos/lib/gcc/x86_64-suse-linux/4.5.1/include \
+# 	-I/opt/gcc/4.5.1/snos/lib/gcc/x86_64-suse-linux/4.5.1/include-fixed \
+# 	-I/usr/include
+
+# LIBADD = -L/opt/gcc/4.5.1/snos/lib/gcc/x86_64-suse-linux/4.5.1/../../../
+
+COMBBLAS = ..
+BOOST = $(BOOST_DIR)
+COMBBLAS_INC = $(COMBBLAS)/include/CombBLAS
+COMBBLAS_SRC = $(COMBBLAS)/src
+INCADD = -I$(COMBBLAS)/include/ -I$(COMBBLAS)/psort-1.0/include/ -I$(COMBBLAS)/usort/include/ -I$(BOOST)/include -I$(COMBBLAS)/graph500-1.2/generator/include/ 
+
+
+# notes for configure:
+
+# -fno-exceptions does not work with MPICH2
+# -fno-rtti does not work with tr1:tuples
+
+
+GCCOPT = -O2 -DMPICH_IGNORE_CXX_SEEK -DGRAPH_GENERATOR_SEQ #-DNDEBUG (disables important assertions)
+GCCDEB = -g -fno-inline -DMPICH_IGNORE_CXX_SEEK -DGRAPH_GENERATOR_SEQ #-DDEBUG
+OPTPGI = -fast -Mipa=fast,inline -Msmartalloc --zc_eh -DMPICH_IGNORE_CXX_SEEK -DGRAPH_GENERATOR_SEQ 
+COMPILER = CC 
+GCCFLAGS = $(GCCOPT) #-DTIMING 
+PGIFLAGS = $(INCADD) $(OPTPGI) -DCOMBBLAS_BOOST
+CRAYFLAGS = $(INCADD) -DCOMBBLAS_BOOST -DCRAYCOMP -h msglevel_4
+FLAGS = $(GCCFLAGS) -std=c++11 -std=gnu++14 -DTHREADED -fopenmp #-DCOMBBLAS_DEBUG #-DKSELECTLIMIT=40 
+
+
+#
+# build Graph500 generator
+#
+$(COMBBLAS)/graph500-1.2/generator/libgraph_generator_seq.a:
+	$(MAKE) -C $(COMBBLAS)/graph500-1.2/generator
+
+
+CommGrid.o:	$(COMBBLAS_SRC)/CommGrid.cpp $(COMBBLAS_INC)/CommGrid.h
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o CommGrid.o $(COMBBLAS_SRC)/CommGrid.cpp 
+mmio.o: $(COMBBLAS_SRC)/mmio.c
+	cc $(INCADD) $(FLAGS) -c -o mmio.o $(COMBBLAS_SRC)/mmio.c
+
+MPIType.o:	$(COMBBLAS_SRC)/MPIType.cpp $(COMBBLAS_INC)/MPIType.h
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o MPIType.o $(COMBBLAS_SRC)/MPIType.cpp 
+
+MemoryPool.o:	$(COMBBLAS_SRC)/MemoryPool.cpp $(COMBBLAS_INC)/SpDefs.h
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o MemoryPool.o $(COMBBLAS_SRC)/MemoryPool.cpp 
+
+hash.o:	$(COMBBLAS_SRC)/hash.cpp $(COMBBLAS_INC)/hash.hpp
+	$(COMPILER) $(FLAGS) $(INCADD) -c -o hash.o $(COMBBLAS_SRC)/hash.cpp
+
+
+BetwCent.o: BetwCent.cpp $(COMBBLAS_INC)/SpDCCols.cpp $(COMBBLAS_INC)/dcsc.cpp $(COMBBLAS_INC)/SpHelper.h $(COMBBLAS_INC)/SpParMat.h $(COMBBLAS_INC)/ParFriends.h $(COMBBLAS_INC)/SpParMat.cpp $(COMBBLAS_INC)/SpDefs.h $(COMBBLAS_INC)/SpTuples.cpp
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o BetwCent.o BetwCent.cpp 
+
+MCL.o:  MCL.cpp CC.h WriteMCLClusters.h $(COMBBLAS_INC)/SpDCCols.cpp $(COMBBLAS_INC)/dcsc.cpp $(COMBBLAS_INC)/SpHelper.h $(COMBBLAS_INC)/SpParMat.h $(COMBBLAS_INC)/ParFriends.h $(COMBBLAS_INC)/SpParMat.cpp $(COMBBLAS_INC)/SpDefs.h $(COMBBLAS_INC)/SpTuples.cpp
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o MCL.o MCL.cpp 
+
+FastSV.o:  FastSV.cpp FastSV.h $(COMBBLAS_INC)/SpDCCols.cpp $(COMBBLAS_INC)/dcsc.cpp $(COMBBLAS_INC)/SpHelper.h $(COMBBLAS_INC)/SpParMat.h $(COMBBLAS_INC)/ParFriends.h $(COMBBLAS_INC)/SpParMat.cpp $(COMBBLAS_INC)/SpDefs.h $(COMBBLAS_INC)/SpTuples.cpp 
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o FastSV.o FastSV.cpp 
+
+CC.o:  CC.cpp CC.h $(COMBBLAS_INC)/SpDCCols.cpp $(COMBBLAS_INC)/dcsc.cpp $(COMBBLAS_INC)/SpHelper.h $(COMBBLAS_INC)/SpParMat.h $(COMBBLAS_INC)/ParFriends.h $(COMBBLAS_INC)/SpParMat.cpp $(COMBBLAS_INC)/SpDefs.h $(COMBBLAS_INC)/SpTuples.cpp 
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o CC.o CC.cpp 
+
+TopDownBFS.o:  TopDownBFS.cpp $(COMBBLAS_INC)/SpDCCols.cpp $(COMBBLAS_INC)/dcsc.cpp $(COMBBLAS_INC)/SpHelper.h $(COMBBLAS_INC)/SpParMat.h $(COMBBLAS_INC)/ParFriends.h $(COMBBLAS_INC)/SpParMat.cpp $(COMBBLAS_INC)/SpDefs.h $(COMBBLAS_INC)/SpTuples.cpp $(COMBBLAS_INC)/SpImpl.h
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o TopDownBFS.o TopDownBFS.cpp 
+
+DirOptBFS.o:  DirOptBFS.cpp $(COMBBLAS_INC)/SpDCCols.cpp $(COMBBLAS_INC)/dcsc.cpp $(COMBBLAS_INC)/SpHelper.h $(COMBBLAS_INC)/SpParMat.h $(COMBBLAS_INC)/ParFriends.h $(COMBBLAS_INC)/SpParMat.cpp $(COMBBLAS_INC)/SpDefs.h $(COMBBLAS_INC)/SpTuples.cpp     $(COMBBLAS_INC)/SpImpl.h
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o DirOptBFS.o DirOptBFS.cpp 
+
+FilteredBFS.o:  FilteredBFS.cpp $(COMBBLAS_INC)/SpDCCols.cpp $(COMBBLAS_INC)/dcsc.cpp $(COMBBLAS_INC)/SpHelper.h $(COMBBLAS_INC)/SpParMat.h $(COMBBLAS_INC)/ParFriends.h $(COMBBLAS_INC)/SpParMat.cpp $(COMBBLAS_INC)/SpDefs.h $(COMBBLAS_INC)/SpTuples.cpp     $(COMBBLAS_INC)/SpImpl.h $(COMBBLAS_INC)/SpParHelper.cpp $(COMBBLAS_INC)/Friends.h TwitterEdge.h $(COMBBLAS_INC)/MPIType.h
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o FilteredBFS.o FilteredBFS.cpp 
+
+FilteredMIS.o:  FilteredMIS.cpp $(COMBBLAS_INC)/SpDCCols.cpp $(COMBBLAS_INC)/dcsc.cpp $(COMBBLAS_INC)/SpHelper.h $(COMBBLAS_INC)/SpParMat.h $(COMBBLAS_INC)/ParFriends.h $(COMBBLAS_INC)/SpParMat.cpp $(COMBBLAS_INC)/SpDefs.h $(COMBBLAS_INC)/SpTuples.cpp     $(COMBBLAS_INC)/SpImpl.h $(COMBBLAS_INC)/SpParHelper.cpp $(COMBBLAS_INC)/Friends.h TwitterEdge.h $(COMBBLAS_INC)/MPIType.h $(COMBBLAS_INC)/FullyDistVec.cpp
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o FilteredMIS.o FilteredMIS.cpp
+
+mcl:	MemoryPool.o CommGrid.o MPIType.o MCL.o mmio.o hash.o
+	$(COMPILER) $(INCADD) $(FLAGS)  -o mcl MCL.o MemoryPool.o mmio.o CommGrid.o MPIType.o hash.o
+
+cc:	MemoryPool.o CommGrid.o MPIType.o CC.o mmio.o hash.o
+	$(COMPILER) $(INCADD) $(FLAGS) -o cc CC.o MemoryPool.o mmio.o CommGrid.o MPIType.o hash.o
+
+fastsv:	MemoryPool.o CommGrid.o MPIType.o FastSV.o mmio.o hash.o
+	$(COMPILER) $(INCADD) $(FLAGS) -o fastsv FastSV.o  MemoryPool.o mmio.o CommGrid.o MPIType.o hash.o
+
+tdbfs:	MemoryPool.o CommGrid.o MPIType.o TopDownBFS.o $(COMBBLAS)/graph500-1.2/generator/libgraph_generator_seq.a
+	$(COMPILER) $(INCADD) $(FLAGS) -o tdbfs TopDownBFS.o MemoryPool.o CommGrid.o MPIType.o -L$(COMBBLAS)/graph500-1.2/generator -lgraph_generator_seq 
+
+dobfs:	MemoryPool.o CommGrid.o MPIType.o DirOptBFS.o $(COMBBLAS)/graph500-1.2/generator/libgraph_generator_seq.a
+	$(COMPILER) $(INCADD) $(FLAGS) -o dobfs DirOptBFS.o MemoryPool.o CommGrid.o MPIType.o -L$(COMBBLAS)/graph500-1.2/generator -lgraph_generator_seq 
+
+betwcent: MemoryPool.o CommGrid.o MPIType.o BetwCent.o
+	$(COMPILER) $(INCADD) $(FLAGS) -o betwcent BetwCent.o MemoryPool.o CommGrid.o MPIType.o 
+
+fbfs:	MemoryPool.o CommGrid.o MPIType.o FilteredBFS.o $(COMBBLAS)/graph500-1.2/generator/libgraph_generator_seq.a
+	$(COMPILER) $(INCADD) $(FLAGS) -o fbfs FilteredBFS.o MemoryPool.o CommGrid.o MPIType.o -L$(COMBBLAS)/graph500-1.2/generator -lgraph_generator_seq
+
+fmis:	MemoryPool.o CommGrid.o MPIType.o FilteredMIS.o $(COMBBLAS)/graph500-1.2/generator/libgraph_generator_seq.a
+	$(COMPILER) $(INCADD) $(FLAGS) -o fmis FilteredMIS.o MemoryPool.o CommGrid.o MPIType.o -L$(COMBBLAS)/graph500-1.2/generator -lgraph_generator_seq
+
+
+clean:
+	rm -f betwcent
+	rm -f driver
+	rm -f mcl
+	rm -f fbfs
+	rm -f fmis
+	rm -f apowers
+	rm -f dobfs
+	rm -f tdbfs
+	rm -f *.o
+	rm -f $(COMBBLAS)/graph500-1.2/generator/*.o
+	rm -f $(COMBBLAS)/graph500-1.2/generator/libgraph_generator_seq.a
+
+cleanout:
+	rm out.*
+	rm err.*

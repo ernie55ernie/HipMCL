@@ -1,0 +1,12 @@
+## laptop example
+mpirun -np 1 ../mcl -M hep-th.mtx -I 2 -p .01 -S 5 -R 6 -pct 0.9 -rand 0 -base 1 -phases 1 -o hep-th.out
+./mclconvert -M hep-th.out 
+
+mcl hep-th-mcl.mtx --abc -I 2 -p .01 -S 5 -R 6 -pct 0.9 -o hep-th-mcl.out
+
+
+
+
+sbatch batch_edison_16node_euk
+./mclconvert -M euk.out 
+./fscore -M1 euk.mcl -M2 euk.out.hipmcl -base 0
