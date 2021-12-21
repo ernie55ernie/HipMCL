@@ -1,2 +1,0 @@
-mpirun -np 25 ./TransposeTest ../BETWDATA/ betwinput_scale16 betwinput_transposed_scale16
-

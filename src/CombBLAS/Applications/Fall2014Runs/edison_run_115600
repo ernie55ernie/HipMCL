@@ -1,9 +1,0 @@
-#PBS -S /bin/bash
-#PBS -q regular
-#PBS -l mppwidth=115600
-#PBS -l walltime=01:30:00
-#PBS -j eo
-#PBS -V
-
-cd $PBS_O_WORKDIR
-aprun -n 115600 ./dobfs 36

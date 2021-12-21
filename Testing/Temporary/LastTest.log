@@ -1,3 +1,103 @@
-Start testing: Dec 20 22:01 EST
+Start testing: Dec 21 12:06 EST
 ----------------------------------------------------------
-End testing: Dec 20 22:01 EST
+1/1 Testing: hepth_mtx_test
+1/1 Test: hepth_mtx_test
+Command: "/Users/mth/Codes/mpich-3.4.3/_install/bin/mpirun" "-np" "4" "bin/hipmcl" "-M" "data/hep-th.mtx" "--matrix-market" "-base" "1" "-I" "2"
+Directory: /Users/mth/Codes/hipmcl
+"hepth_mtx_test" start time: Dec 21 12:06 EST
+Output:
+----------------------------------------------------------
+******** Number of phases will not be estimated as -per-process-mem option is not supplied. It is highly recommended that you provide -per-process-mem option for large-scale runs. *********** 
+
+======================================
+Running HipMCL with the parameters: 
+======================================
+Input/Output file
+    input filename: data/hep-th.mtx
+    input file type:  Matrix Market
+    Base of the input matrix: 1
+    Output filename: data/hep-th.mtx.hipmcl
+Preprocessing
+    Remove isolated vertices? : no
+    Randomly permute vertices? : no
+Inflation: 2
+Pruning
+    Prunelimit: 0.0001
+    Recover number: 1400
+    Recover percent: 90
+    Selection number: 1100
+    Apply prune/select/recovery before the first iteration?  : no
+HipMCL optimization
+    Number of layers : 1
+    Computation kernel : 1
+    Number of phases: 1
+    Memory avilable per process: not provided
+Using double precision floating point
+Using 64 bit local indexing
+Debugging
+    Show matrices after major steps? : no
+======================================
+Reading input file......
+Matrix is Float
+Matrix is symmetric
+Total number of nonzeros expected across all processors is 15751
+File is 225233 bytes
+ : took 0.034339 seconds
+Number of vertices: 8361 number of edges: 31502
+Load balance: 2.05549
+Adjusting loops
+Made stochastic
+Iteration#   1 :  chaos: 33.3  load-balance: 2.01 Time: 0.0697
+Iteration#   2 :  chaos: 51.5  load-balance: 1.8 Time: 0.367
+Iteration#   3 :  chaos: 21.2  load-balance: 1.77 Time: 0.459
+Iteration#   4 :  chaos: 5.81  load-balance: 1.79 Time: 0.135
+Iteration#   5 :  chaos: 3.65  load-balance: 1.82 Time: 0.0874
+Iteration#   6 :  chaos: 1.87  load-balance: 1.83 Time: 0.0498
+Iteration#   7 :  chaos: 0.74  load-balance: 1.82 Time: 0.0684
+Iteration#   8 :  chaos: 0.707  load-balance: 1.81 Time: 0.0737
+Iteration#   9 :  chaos: 0.381  load-balance: 1.8 Time: 0.0547
+Iteration#  10 :  chaos: 0.345  load-balance: 1.79 Time: 0.039
+Iteration#  11 :  chaos: 0.363  load-balance: 1.79 Time: 0.0375
+Iteration#  12 :  chaos: 0.245  load-balance: 1.79 Time: 0.0448
+Iteration#  13 :  chaos: 0.238  load-balance: 1.79 Time: 0.053
+Iteration#  14 :  chaos: 0.249  load-balance: 1.79 Time: 0.0513
+Iteration#  15 :  chaos: 0.193  load-balance: 1.79 Time: 0.0354
+Iteration#  16 :  chaos: 0.25  load-balance: 1.79 Time: 0.0513
+Iteration#  17 :  chaos: 0.166  load-balance: 1.79 Time: 0.0378
+Iteration#  18 :  chaos: 0.0266  load-balance: 1.79 Time: 0.0427
+Iteration#  19 :  chaos: 0.000384  load-balance: 1.79 Time: 0.0554
+Iteration#  20 :  chaos: 2.18e-11  load-balance: 1.79 Time: 0.0639
+Finding connected components....
+Iteration: 1 converged: 0 stars: 8361 nonstars: 0
+Iteration: 1 converged: 0 stars: 8361 nonstars: 0
+Iteration: 2 converged: 8361 stars: 0 nonstars: 0
+================detailed timing==================
+Expansion: 1.05384
+       Abcast= 0.104667
+       Bbcast= 0.077298
+       localspgemm= 0.668557
+       multiwaymergetime= 0.20332
+Prune: 0.101174
+       kselect= 0
+       prunecolumn= 0.101174
+Inflation 0.019604
+Component: 0.058557
+File I/O: 0.034339
+=================================================
+Number of clusters: 2346
+Total time: 2.07699
+=================================================
+
+[WARNING] yaksa: 1 leaked handle pool objects
+[WARNING] yaksa: 1 leaked handle pool objects
+[WARNING] yaksa: 1 leaked handle pool objects
+[WARNING] yaksa: 1 leaked handle pool objects
+<end of output>
+Test time =   2.48 sec
+----------------------------------------------------------
+Test Passed.
+"hepth_mtx_test" end time: Dec 21 12:06 EST
+"hepth_mtx_test" time elapsed: 00:00:02
+----------------------------------------------------------
+
+End testing: Dec 21 12:06 EST

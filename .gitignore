@@ -1,7 +1,13 @@
 CMakeFiles
 *.o
+*.a
+*.cmake
 hipmcl
 .DS_Store
 _build
 _install
 cmake
+CMakeCache.txt
+CMakeFile
+Makefile
+src/CombBLAS/Makefile
